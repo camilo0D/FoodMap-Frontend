@@ -1,6 +1,9 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-food.jpg";
 import { Button } from "@/components/ui/button";
-import { MapPin, UtensilsCrossed, ShoppingCart } from "lucide-react";
+import { MapPin, UtensilsCrossed, ShoppingCart, Eye, Target, Heart } from "lucide-react";
+import LoginDialog from "@/components/LoginDialog";
 
 const restaurants = [
   {
@@ -30,6 +33,9 @@ const steps = [
 ];
 
 const Index = () => {
+  const [loginOpen, setLoginOpen] = useState(false);
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
@@ -39,8 +45,13 @@ const Index = () => {
           <nav className="hidden md:flex gap-6">
             <a href="#" className="text-foreground/80 hover:text-primary font-medium transition-colors">Inicio</a>
             <a href="#restaurants" className="text-foreground/80 hover:text-primary font-medium transition-colors">Restaurantes</a>
-            <a href="#steps" className="text-foreground/80 hover:text-primary font-medium transition-colors">Cómo funciona</a>
-            <a href="#" className="text-foreground/80 hover:text-primary font-medium transition-colors">Iniciar sesión</a>
+            <a href="#about" className="text-foreground/80 hover:text-primary font-medium transition-colors">Cómo funciona</a>
+            <button
+              onClick={() => setLoginOpen(true)}
+              className="text-foreground/80 hover:text-primary font-medium transition-colors"
+            >
+              Iniciar sesión
+            </button>
           </nav>
         </div>
       </header>
@@ -62,8 +73,14 @@ const Index = () => {
             Explora restaurantes, revisa su menú y haz pedidos fácilmente desde un mapa interactivo.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <Button variant="hero" size="lg">Buscar comida cerca</Button>
-            <Button variant="heroOutline" size="lg">Cómo funciona</Button>
+            <Button variant="hero" size="lg" onClick={() => navigate("/mapa")}>
+              Buscar comida cerca
+            </Button>
+            <Button variant="heroOutline" size="lg" onClick={() => {
+              document.getElementById("about")?.scrollIntoView({ behavior: "smooth" });
+            }}>
+              Cómo funciona
+            </Button>
           </div>
         </div>
       </section>
@@ -108,21 +125,79 @@ const Index = () => {
         </div>
       </section>
 
+      {/* About / Vision / Purpose */}
+      <section id="about" className="bg-card py-20 px-6">
+        <div className="container max-w-5xl">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-6">
+            Sobre FoodMap
+          </h2>
+          <p className="text-center text-muted-foreground max-w-2xl mx-auto mb-16 text-lg">
+            Conoce nuestra plataforma, cómo funciona y por qué la creamos.
+          </p>
+
+          <div className="grid md:grid-cols-3 gap-10">
+            {/* How it works */}
+            <div className="bg-background rounded-xl p-8 shadow-card">
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-5">
+                <Eye className="w-7 h-7 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">¿Cómo funciona?</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                FoodMap te permite explorar restaurantes y locales de comida en Buenaventura a través de un mapa interactivo. 
+                Puedes ver el menú de cada lugar, leer calificaciones de otros usuarios y hacer tu pedido directamente desde la plataforma. 
+                Todo en pocos clics, desde tu celular o computador.
+              </p>
+            </div>
+
+            {/* Vision */}
+            <div className="bg-background rounded-xl p-8 shadow-card">
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-5">
+                <Target className="w-7 h-7 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Nuestra visión</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Queremos ser la plataforma de referencia para encontrar comida en Buenaventura y el Pacífico colombiano. 
+                Creemos que la tecnología puede acercar a las personas a los sabores locales, apoyando a pequeños negocios 
+                y transformando la forma en que la comunidad descubre nuevos lugares para comer.
+              </p>
+            </div>
+
+            {/* Purpose */}
+            <div className="bg-background rounded-xl p-8 shadow-card">
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-5">
+                <Heart className="w-7 h-7 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Nuestro propósito</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Nuestro propósito es impulsar la economía local conectando a los usuarios con restaurantes, 
+                puestos de comida y emprendimientos gastronómicos de Buenaventura. Queremos que cada negocio 
+                tenga visibilidad digital y que cada persona encuentre su próxima comida favorita fácilmente.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Final CTA */}
       <section className="bg-primary py-20 px-6 text-center">
         <div className="container max-w-2xl">
           <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-8">
             La comida que buscas está más cerca de lo que crees
           </h2>
-          <Button variant="heroOutline" size="lg">Explorar restaurantes</Button>
+          <Button variant="heroOutline" size="lg" onClick={() => navigate("/mapa")}>
+            Explorar restaurantes
+          </Button>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="bg-foreground py-10 text-center">
         <p className="text-background font-semibold">FoodMap © 2026</p>
-        <p className="text-background/60 text-sm mt-1">Encuentra comida rápida cerca de ti</p>
+        <p className="text-background/60 text-sm mt-1">Encuentra comida rápida cerca de ti en Buenaventura</p>
       </footer>
+
+      {/* Login Dialog */}
+      <LoginDialog open={loginOpen} onOpenChange={setLoginOpen} />
     </div>
   );
 };
