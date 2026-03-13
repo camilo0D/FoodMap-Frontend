@@ -2,27 +2,75 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-food.jpg";
 import { Button } from "@/components/ui/button";
-import { MapPin, UtensilsCrossed, ShoppingCart, Eye, Target, Heart } from "lucide-react";
+import { MapPin, UtensilsCrossed, ShoppingCart, Eye, Target, Heart, Clock, Phone, Star } from "lucide-react";
 import LoginDialog from "@/components/LoginDialog";
 
 const restaurants = [
   {
-    name: "Burger House",
-    category: "Hamburguesas",
+    name: "Uramba Cocina",
+    category: "Cocina tradicional del Pacífico",
     rating: 5,
-    image: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&h=300&fit=crop",
+    image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop",
+    horario: "Mar–Dom: 12:00 PM – 9:00 PM",
+    telefono: "+57 602 241 0000",
+    direccion: "Centro, Buenaventura",
+    domicilio: true,
+    especialidad: "Ceviches, cazuela de mariscos, encocados",
   },
   {
-    name: "Pollo Express",
-    category: "Pollo frito",
+    name: "Restaurante Café Pacífico",
+    category: "Mariscos & Cocina local",
     rating: 4,
     image: "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?w=400&h=300&fit=crop",
+    horario: "Lun–Sáb: 11:00 AM – 10:00 PM",
+    telefono: "+57 602 242 3456",
+    direccion: "Av. Simón Bolívar, Buenaventura",
+    domicilio: true,
+    especialidad: "Pescado frito, arroz con coco, jugo de borojó",
   },
   {
-    name: "Salchipapas 24/7",
-    category: "Comida rápida",
+    name: "Restaurante Sabrosuras",
+    category: "Comida criolla & Asados",
     rating: 5,
-    image: "https://images.unsplash.com/photo-1548365328-9f547fb0953c?w=400&h=300&fit=crop",
+    image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=400&h=300&fit=crop",
+    horario: "Lun–Dom: 10:00 AM – 9:00 PM",
+    telefono: "+57 602 243 7890",
+    direccion: "Cl 6-62, Brr. El Dorado, Buenaventura",
+    domicilio: true,
+    especialidad: "Sancocho de pescado, arroz atollado, chuleta",
+  },
+  {
+    name: "La Fonda Paisa",
+    category: "Asadero & Cocina criolla",
+    rating: 4,
+    image: "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400&h=300&fit=crop",
+    horario: "Lun–Sáb: 7:00 AM – 8:00 PM",
+    telefono: "+57 602 241 5678",
+    direccion: "Centro, Buenaventura",
+    domicilio: false,
+    especialidad: "Bandeja paisa, mondongo, caldo de costilla",
+  },
+  {
+    name: "Mariscos del Pacífico",
+    category: "Mariscos & Ceviches",
+    rating: 5,
+    image: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400&h=300&fit=crop",
+    horario: "Mar–Dom: 11:00 AM – 9:00 PM",
+    telefono: "+57 602 244 1234",
+    direccion: "Zona portuaria, Buenaventura",
+    domicilio: true,
+    especialidad: "Ceviche de camarón, langostinos al ajillo, coctel de mariscos",
+  },
+  {
+    name: "El Rincón Bonaverense",
+    category: "Comida típica del Pacífico",
+    rating: 4,
+    image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop",
+    horario: "Lun–Dom: 8:00 AM – 8:00 PM",
+    telefono: "+57 602 242 9876",
+    direccion: "Barrio El Carmen, Buenaventura",
+    domicilio: true,
+    especialidad: "Tapao de pescado, pusandao, aborrajados",
   },
 ];
 
