@@ -154,16 +154,39 @@ const Index = () => {
       {/* Restaurants */}
       <section id="restaurants" className="py-20 px-6">
         <div className="container">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-14">Restaurantes destacados</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">Restaurantes destacados</h2>
+          <p className="text-center text-muted-foreground mb-14 text-lg">Los mejores lugares para comer en Buenaventura</p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {restaurants.map((r, i) => (
               <div key={i} className="bg-card rounded-lg overflow-hidden shadow-card hover:shadow-lg transition-shadow">
                 <img src={r.image} alt={r.name} className="w-full h-44 object-cover" loading="lazy" />
                 <div className="p-5">
-                  <h3 className="text-lg font-semibold">{r.name}</h3>
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="text-lg font-semibold">{r.name}</h3>
+                    <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                      {r.domicilio ? "Domicilio ✓" : "Solo local"}
+                    </span>
+                  </div>
                   <p className="text-muted-foreground text-sm mb-2">{r.category}</p>
-                  <div className="mb-4 text-amber-400">
-                    {"⭐".repeat(r.rating)}
+                  <div className="mb-3 flex items-center gap-1">
+                    {Array.from({ length: r.rating }).map((_, j) => (
+                      <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-foreground/80 mb-3 italic">"{r.especialidad}"</p>
+                  <div className="space-y-1.5 text-sm text-muted-foreground mb-4">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-3.5 h-3.5 text-primary" />
+                      <span>{r.horario}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-3.5 h-3.5 text-primary" />
+                      <span>{r.telefono}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-3.5 h-3.5 text-primary" />
+                      <span>{r.direccion}</span>
+                    </div>
                   </div>
                   <Button className="w-full">Ver menú</Button>
                 </div>
