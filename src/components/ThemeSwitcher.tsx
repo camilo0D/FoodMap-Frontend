@@ -10,10 +10,10 @@ import {
 
 const themes = [
   { name: "Claro", value: "light", color: "#f5f5f5", border: "#ccc" },
-  { name: "Oscuro", value: "dark", color: "#1a1a1a", border: "#444" },
-  { name: "Morado", value: "purple", color: "#7c3aed", border: "#7c3aed" },
-  { name: "Café", value: "brown", color: "#78350f", border: "#78350f" },
-  { name: "Azul", value: "blue", color: "#2563eb", border: "#2563eb" },
+  { name: "Oscuro", value: "dark", color: "#1a1a1a", border: "#555" },
+  { name: "Morado", value: "purple", color: "#1a1025", border: "#7c3aed" },
+  { name: "Café", value: "brown", color: "#1a1410", border: "#c2731a" },
+  { name: "Azul", value: "blue", color: "#101a24", border: "#2563eb" },
 ];
 
 const ThemeSwitcher = () => {
