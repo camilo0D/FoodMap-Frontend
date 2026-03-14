@@ -108,7 +108,7 @@ const Index = () => {
 
       {/* Hero */}
       <section
-        className="relative flex items-center justify-center text-center min-h-[90vh]"
+        className="relative flex items-center justify-center text-center min-h-screen"
         style={{
           backgroundImage: `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${heroImage})`,
           backgroundSize: "cover",
