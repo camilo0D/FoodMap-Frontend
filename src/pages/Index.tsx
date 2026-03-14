@@ -91,7 +91,7 @@ const Index = () => {
       <header className="sticky top-0 z-50 bg-card shadow-nav">
         <div className="container flex items-center justify-between py-4">
           <span className="text-2xl font-bold text-primary">FoodMap</span>
-          <nav className="hidden md:flex gap-6">
+          <nav className="hidden md:flex gap-6 items-center">
             <a href="#" className="text-foreground/80 hover:text-primary font-medium transition-colors">Inicio</a>
             <a href="#restaurants" className="text-foreground/80 hover:text-primary font-medium transition-colors">Restaurantes</a>
             <a href="#about" className="text-foreground/80 hover:text-primary font-medium transition-colors">Cómo funciona</a>
@@ -101,6 +101,7 @@ const Index = () => {
             >
               Iniciar sesión
             </button>
+            <ThemeSwitcher />
           </nav>
         </div>
       </header>
