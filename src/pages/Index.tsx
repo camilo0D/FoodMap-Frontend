@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, UtensilsCrossed, ShoppingCart, Eye, Target, Heart, Clock, Phone, Star } from "lucide-react";
 import LoginDialog from "@/components/LoginDialog";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
+import SplashCTA from "@/components/SplashCTA";
 
 const restaurants = [
   {
