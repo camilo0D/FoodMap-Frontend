@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, UtensilsCrossed, ShoppingCart, Eye, Target, Heart, Clock, Phone, Star } from "lucide-react";
 import LoginDialog from "@/components/LoginDialog";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
+import SplashCTA from "@/components/SplashCTA";
 
 const restaurants = [
   {
@@ -83,10 +84,12 @@ const steps = [
 
 const Index = () => {
   const [loginOpen, setLoginOpen] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
+      {showSplash && <SplashCTA onEnter={() => setShowSplash(false)} />}
       {/* Navbar */}
       <header className="sticky top-0 z-50 bg-card shadow-nav">
         <div className="container flex items-center justify-between py-4">
