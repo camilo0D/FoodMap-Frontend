@@ -1,0 +1,36 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main  # O el nombre de tu rama principal
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Instalar Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20 # Ajusta a tu versión
+
+    - name: Instalar dependencias y Build
+      run: |
+        npm install
+        npm run build
+
+    - name: Desplegar al VPS vía SCP
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        port: 22
+        source: "dist/*" # O "build/*" si no usas Vite
+        target: "/var/www/ds2/foodmap"
+        strip_components: 1 # Para que no cree la carpeta 'dist' dentro de la ruta
+        rm: true
