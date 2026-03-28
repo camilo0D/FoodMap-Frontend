@@ -3,7 +3,7 @@ name: Deploy Frontend
 on:
   push:
     branches:
-      - main  # O el nombre de tu rama principal
+      - main 
 
 jobs:
   build-and-deploy:
@@ -16,21 +16,32 @@ jobs:
     - name: Instalar Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: 20 # Ajusta a tu versión
+        node-version: 20 
 
-    - name: Instalar dependencias y Build
-      run: |
-        npm install
-        npm run build
+    - name: Instalar dependencias
+      run: npm install
 
-    - name: Desplegar al VPS vía SCP
-      uses: appleboy/scp-action@master
+    - name: Build del proyecto
+      run: npm run build
+
+    - name: Limpiar carpeta (sin borrar .htaccess)
+      uses: appleboy/ssh-action@v1.0.0
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSH_KEY }}
         port: 22
-        source: "dist/*" # O "build/*" si no usas Vite
+        script: |
+          find /var/www/ds2/foodmap -mindepth 1 ! -name '.htaccess' -exec rm -rf {} +
+
+    - name: Desplegar al VPS vía SCP
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        port: 22
+        source: "dist/*"
         target: "/var/www/ds2/foodmap"
-        strip_components: 1 # Para que no cree la carpeta 'dist' dentro de la ruta
-        rm: true
+        strip_components: 1
+        rm: false
