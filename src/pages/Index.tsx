@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-food.jpg";
 import { Button } from "@/components/ui/button";
-import { MapPin, UtensilsCrossed, ShoppingCart, Eye, Target, Heart, Clock, Phone, Star } from "lucide-react";
+import { MapPin, UtensilsCrossed, ShoppingCart, Eye, Target, Heart, Clock, Star } from "lucide-react";
 import LoginDialog from "@/components/LoginDialog";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import SplashCTA from "@/components/SplashCTA";
@@ -14,8 +14,7 @@ const restaurants = [
     rating: 5,
     image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop",
     horario: "Mar–Dom: 12:00 PM – 9:00 PM",
-    telefono: "+57 602 241 0000",
-    direccion: "Centro, Buenaventura",
+    direccion: "Centro",
     domicilio: true,
     especialidad: "Ceviches, cazuela de mariscos, encocados",
   },
@@ -25,8 +24,7 @@ const restaurants = [
     rating: 4,
     image: "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?w=400&h=300&fit=crop",
     horario: "Lun–Sáb: 11:00 AM – 10:00 PM",
-    telefono: "+57 602 242 3456",
-    direccion: "Av. Simón Bolívar, Buenaventura",
+    direccion: "Av. Simón Bolívar",
     domicilio: true,
     especialidad: "Pescado frito, arroz con coco, jugo de borojó",
   },
@@ -36,8 +34,7 @@ const restaurants = [
     rating: 5,
     image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=400&h=300&fit=crop",
     horario: "Lun–Dom: 10:00 AM – 9:00 PM",
-    telefono: "+57 602 243 7890",
-    direccion: "Cl 6-62, Brr. El Dorado, Buenaventura",
+    direccion: "Cl 6-62, Brr. El Dorado",
     domicilio: true,
     especialidad: "Sancocho de pescado, arroz atollado, chuleta",
   },
@@ -47,8 +44,7 @@ const restaurants = [
     rating: 4,
     image: "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400&h=300&fit=crop",
     horario: "Lun–Sáb: 7:00 AM – 8:00 PM",
-    telefono: "+57 602 241 5678",
-    direccion: "Centro, Buenaventura",
+    direccion: "Centro",
     domicilio: false,
     especialidad: "Bandeja paisa, mondongo, caldo de costilla",
   },
@@ -58,8 +54,7 @@ const restaurants = [
     rating: 5,
     image: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400&h=300&fit=crop",
     horario: "Mar–Dom: 11:00 AM – 9:00 PM",
-    telefono: "+57 602 244 1234",
-    direccion: "Zona portuaria, Buenaventura",
+    direccion: "Zona portuaria",
     domicilio: true,
     especialidad: "Ceviche de camarón, langostinos al ajillo, coctel de mariscos",
   },
@@ -69,8 +64,7 @@ const restaurants = [
     rating: 4,
     image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop",
     horario: "Lun–Dom: 8:00 AM – 8:00 PM",
-    telefono: "+57 602 242 9876",
-    direccion: "Barrio El Carmen, Buenaventura",
+    direccion: "Barrio El Carmen",
     domicilio: true,
     especialidad: "Tapao de pescado, pusandao, aborrajados",
   },
@@ -160,7 +154,7 @@ const Index = () => {
       <section id="restaurants" className="py-20 px-6">
         <div className="container">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">Restaurantes destacados</h2>
-          <p className="text-center text-muted-foreground mb-14 text-lg">Los mejores lugares para comer en Buenaventura</p>
+          <p className="text-center text-muted-foreground mb-14 text-lg">Los mejores lugares para comer cerca de ti</p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {restaurants.map((r, i) => (
               <div key={i} className="bg-card rounded-lg overflow-hidden shadow-card hover:shadow-lg transition-shadow">
@@ -184,10 +178,7 @@ const Index = () => {
                       <Clock className="w-3.5 h-3.5 text-primary" />
                       <span>{r.horario}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-3.5 h-3.5 text-primary" />
-                      <span>{r.telefono}</span>
-                    </div>
+
                     <div className="flex items-center gap-2">
                       <MapPin className="w-3.5 h-3.5 text-primary" />
                       <span>{r.direccion}</span>
@@ -219,7 +210,7 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-bold mb-3">¿Cómo funciona?</h3>
               <p className="text-muted-foreground leading-relaxed">
-                FoodMap te permite explorar restaurantes y locales de comida en Buenaventura a través de un mapa interactivo. 
+                FoodMap te permite explorar restaurantes y locales de comida a través de un mapa interactivo. 
                 Puedes ver el menú de cada lugar, leer calificaciones de otros usuarios y hacer tu pedido directamente desde la plataforma. 
                 Todo en pocos clics, desde tu celular o computador.
               </p>
@@ -232,7 +223,7 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-bold mb-3">Nuestra visión</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Queremos ser la plataforma de referencia para encontrar comida en Buenaventura y el Pacífico colombiano. 
+                Queremos ser la plataforma de referencia para encontrar comida en el Pacífico colombiano. 
                 Creemos que la tecnología puede acercar a las personas a los sabores locales, apoyando a pequeños negocios 
                 y transformando la forma en que la comunidad descubre nuevos lugares para comer.
               </p>
@@ -246,7 +237,7 @@ const Index = () => {
               <h3 className="text-xl font-bold mb-3">Nuestro propósito</h3>
               <p className="text-muted-foreground leading-relaxed">
                 Nuestro propósito es impulsar la economía local conectando a los usuarios con restaurantes, 
-                puestos de comida y emprendimientos gastronómicos de Buenaventura. Queremos que cada negocio 
+                puestos de comida y emprendimientos gastronómicos locales. Queremos que cada negocio 
                 tenga visibilidad digital y que cada persona encuentre su próxima comida favorita fácilmente.
               </p>
             </div>
@@ -269,7 +260,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="bg-foreground py-10 text-center">
         <p className="text-background font-semibold">FoodMap © 2026</p>
-        <p className="text-background/60 text-sm mt-1">Encuentra comida rápida cerca de ti en Buenaventura</p>
+        <p className="text-background/60 text-sm mt-1">Encuentra comida rápida cerca de ti</p>
       </footer>
 
       {/* Login Dialog */}

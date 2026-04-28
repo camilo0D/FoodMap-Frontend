@@ -43,7 +43,7 @@ const SplashCTA = ({ onEnter }: { onEnter: () => void }) => {
           Tu próxima comida favorita está aquí
         </h1>
         <p className="text-lg md:text-xl text-primary-foreground/75 mb-12 max-w-lg mx-auto">
-          Descubre los mejores restaurantes y sabores de Buenaventura en un solo lugar.
+          Descubre los mejores restaurantes y sabores del Pacífico en un solo lugar.
         </p>
       </div>
 

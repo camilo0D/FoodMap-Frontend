@@ -15,7 +15,7 @@ const MapPage = () => {
           </Button>
           <span className="text-2xl font-bold text-primary">FoodMap</span>
           <span className="text-muted-foreground text-sm hidden sm:inline">
-            — Restaurantes en Buenaventura
+            — Restaurantes cerca de ti
           </span>
         </div>
       </header>
@@ -23,8 +23,8 @@ const MapPage = () => {
       {/* Map */}
       <div className="flex-1 relative">
         <iframe
-          title="Mapa de restaurantes en Buenaventura"
-          src="https://www.google.com/maps/embed?pb=!1m16!1m12!1m3!1d63612.94!2d-77.05!3d3.88!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!2m1!1srestaurantes+comida+buenaventura+colombia!5e0!3m2!1ses!2sco!4v1710000000000"
+          title="Mapa de restaurantes"
+          src="https://www.google.com/maps/embed?pb=!1m16!1m12!1m3!1d63612.94!2d-77.05!3d3.88!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!2m1!1srestaurantes+comida+colombia!5e0!3m2!1ses!2sco!4v1710000000000"
           className="w-full h-full absolute inset-0 border-0"
           allowFullScreen
           loading="lazy"
