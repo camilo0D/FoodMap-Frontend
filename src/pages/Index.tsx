@@ -154,7 +154,7 @@ const Index = () => {
       <section id="restaurants" className="py-20 px-6">
         <div className="container">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">Restaurantes destacados</h2>
-          <p className="text-center text-muted-foreground mb-14 text-lg">Los mejores lugares para comer cerca de ti</p>
+          <p className="text-center text-muted-foreground mb-14 text-lg">Los mejores lugares para comer cerca de ti en todo el globo</p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {restaurants.map((r, i) => (
               <div key={i} className="bg-card rounded-lg overflow-hidden shadow-card hover:shadow-lg transition-shadow">

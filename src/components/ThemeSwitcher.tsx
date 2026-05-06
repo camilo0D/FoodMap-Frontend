@@ -17,7 +17,7 @@ const themes = [
 ];
 
 const ThemeSwitcher = () => {
-  const [theme, setTheme] = useState(() => localStorage.getItem("app-theme") || "light");
+  const [theme, setTheme] = useState("light");
 
   useEffect(() => {
     const root = document.documentElement;
