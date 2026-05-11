@@ -1,3 +1,4 @@
+import PrivateRoute from "./components/PrivateRoute";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -17,8 +18,14 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/mapa" element={<MapPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route
+            path="/mapa"
+            element={
+              <PrivateRoute>
+                <MapPage />
+              </PrivateRoute>
+            }
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
