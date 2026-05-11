@@ -6,7 +6,7 @@ import { MapPin, UtensilsCrossed, ShoppingCart, Eye, Target, Heart, Clock, Star 
 import LoginDialog from "@/components/LoginDialog";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import SplashCTA from "@/components/SplashCTA";
-import RegisterDialog from "@/components/Registerdialog";
+import RegisterDialog from "@/components/RegisterDialog";
 
 const restaurants = [
   {
