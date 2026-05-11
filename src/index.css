@@ -137,6 +137,10 @@
     --input: 210 15% 20%;
     --ring: 217 91% 60%;
   }
+
+  .leaflet-container {
+    height: 100vh;
+  }
 }
 
 @layer base {
@@ -148,7 +152,12 @@
     @apply bg-background text-foreground font-body antialiased;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-heading;
   }
 }
