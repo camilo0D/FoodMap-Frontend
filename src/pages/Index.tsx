@@ -6,6 +6,7 @@ import { MapPin, UtensilsCrossed, ShoppingCart, Eye, Target, Heart, Clock, Star 
 import LoginDialog from "@/components/LoginDialog";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import SplashCTA from "@/components/SplashCTA";
+import RegisterDialog from "@/components/Registerdialog";
 
 const restaurants = [
   {
@@ -78,6 +79,7 @@ const steps = [
 
 const Index = () => {
   const [loginOpen, setLoginOpen] = useState(false);
+  const [registerOpen, setRegisterOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const navigate = useNavigate();
 
@@ -210,8 +212,8 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-bold mb-3">¿Cómo funciona?</h3>
               <p className="text-muted-foreground leading-relaxed">
-                FoodMap te permite explorar restaurantes y locales de comida a través de un mapa interactivo. 
-                Puedes ver el menú de cada lugar, leer calificaciones de otros usuarios y hacer tu pedido directamente desde la plataforma. 
+                FoodMap te permite explorar restaurantes y locales de comida a través de un mapa interactivo.
+                Puedes ver el menú de cada lugar, leer calificaciones de otros usuarios y hacer tu pedido directamente desde la plataforma.
                 Todo en pocos clics, desde tu celular o computador.
               </p>
             </div>
@@ -223,8 +225,8 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-bold mb-3">Nuestra visión</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Queremos ser la plataforma de referencia para encontrar comida en el Pacífico colombiano. 
-                Creemos que la tecnología puede acercar a las personas a los sabores locales, apoyando a pequeños negocios 
+                Queremos ser la plataforma de referencia para encontrar comida en el Pacífico colombiano.
+                Creemos que la tecnología puede acercar a las personas a los sabores locales, apoyando a pequeños negocios
                 y transformando la forma en que la comunidad descubre nuevos lugares para comer.
               </p>
             </div>
@@ -236,8 +238,8 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-bold mb-3">Nuestro propósito</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Nuestro propósito es impulsar la economía local conectando a los usuarios con restaurantes, 
-                puestos de comida y emprendimientos gastronómicos locales. Queremos que cada negocio 
+                Nuestro propósito es impulsar la economía local conectando a los usuarios con restaurantes,
+                puestos de comida y emprendimientos gastronómicos locales. Queremos que cada negocio
                 tenga visibilidad digital y que cada persona encuentre su próxima comida favorita fácilmente.
               </p>
             </div>
@@ -264,7 +266,16 @@ const Index = () => {
       </footer>
 
       {/* Login Dialog */}
-      <LoginDialog open={loginOpen} onOpenChange={setLoginOpen} />
+      <LoginDialog
+        open={loginOpen}
+        onOpenChange={setLoginOpen}
+        onOpenRegister={() => setRegisterOpen(true)}
+      />
+      <RegisterDialog
+        open={registerOpen}
+        onOpenChange={setRegisterOpen}
+        onSuccessLogin={() => setLoginOpen(true)}
+      />
     </div>
   );
 };
