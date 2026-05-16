@@ -37,14 +37,13 @@ export const useOsmRestaurants = (bboxString) => {
       if (!bboxString) return [];
       
       const query = `
-        [out:json][timeout:15];
+        [out:json][timeout:25];
         (
           node["amenity"~"restaurant|cafe|fast_food|bar|pub|food_court|ice_cream"](${bboxString});
           way["amenity"~"restaurant|cafe|fast_food|bar|pub|food_court|ice_cream"](${bboxString});
+          relation["amenity"~"restaurant|cafe|fast_food|bar|pub|food_court|ice_cream"](${bboxString});
         );
-        out body;
-        >;
-        out skel qt;
+        out center;
       `;
       
       try {
@@ -53,8 +52,11 @@ export const useOsmRestaurants = (bboxString) => {
         const data = await response.json();
         
         return data.elements
-          .filter(el => el.lat && el.lon)
           .map(el => {
+            const lat = el.lat || el.center?.lat;
+            const lon = el.lon || el.center?.lon;
+            if (!lat || !lon) return null;
+
             const tags = el.tags || {};
             const cuisine = (tags.cuisine || "").toLowerCase();
             const amenity = (tags.amenity || "").toLowerCase();
@@ -74,13 +76,13 @@ export const useOsmRestaurants = (bboxString) => {
               id: `osm-${el.id}`,
               name: tags.name || 'Local de comida',
               category: category,
-              lat: el.lat,
-              lng: el.lon,
+              lat: lat,
+              lng: lon,
               isOsm: true,
               rating: 4.2,
               thumbnail: "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=200"
             };
-          });
+          }).filter(Boolean);
 
       } catch (err) {
         console.error("Error fetching OSM restaurants:", err);
