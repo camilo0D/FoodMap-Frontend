@@ -2,10 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-food.jpg";
 import { Button } from "@/components/ui/button";
-import { MapPin, UtensilsCrossed, ShoppingCart, Eye, Target, Heart, Clock, Star } from "lucide-react";
+import { MapPin, UtensilsCrossed, ShoppingCart, Eye, Target, Heart, Clock, Star, ChevronDown } from "lucide-react";
 import LoginDialog from "@/components/LoginDialog";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
-import SplashCTA from "@/components/SplashCTA";
 import RegisterDialog from "@/components/RegisterDialog";
 
 const restaurants = [
@@ -80,12 +79,10 @@ const steps = [
 const Index = () => {
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
-      {showSplash && <SplashCTA onEnter={() => setShowSplash(false)} />}
       {/* Navbar */}
       <header className="sticky top-0 z-50 bg-card shadow-nav">
         <div className="container flex items-center justify-between py-4">
@@ -130,6 +127,15 @@ const Index = () => {
             }}>
               Cómo funciona
             </Button>
+          </div>
+
+          {/* Scroll indicator */}
+          <div 
+            className="mt-6 flex flex-col items-center gap-2 text-primary-foreground/40 cursor-pointer hover:text-primary-foreground/70 transition-colors animate-bounce mx-auto"
+            onClick={() => document.getElementById("steps")?.scrollIntoView({ behavior: "smooth" })}
+          >
+            <span className="text-xs uppercase tracking-widest font-medium">Descubre más</span>
+            <ChevronDown className="w-7 h-9" />
           </div>
         </div>
       </section>
@@ -247,22 +253,10 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="bg-primary py-20 px-6 text-center">
-        <div className="container max-w-2xl">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-8">
-            La comida que buscas está más cerca de lo que crees
-          </h2>
-          <Button variant="heroOutline" size="lg" onClick={() => navigate("/mapa")}>
-            Explorar restaurantes
-          </Button>
-        </div>
-      </section>
-
       {/* Footer */}
-      <footer className="bg-foreground py-10 text-center">
-        <p className="text-background font-semibold">FoodMap © 2026</p>
-        <p className="text-background/60 text-sm mt-1">Encuentra comida rápida cerca de ti</p>
+      <footer className="bg-card py-10 text-center border-t border-border">
+        <p className="text-primary font-semibold">FoodMap © 2026</p>
+        <p className="text-primary/60 text-sm mt-1">Encuentra comida rápida cerca de ti</p>
       </footer>
 
       {/* Login Dialog */}
