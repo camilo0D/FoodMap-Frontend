@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMapEvents, Polyline } from 'react-leaflet';
 import { Star, ExternalLink, Loader2, Globe, Search, Navigation, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -78,6 +79,7 @@ const MapController = ({ onBoundsChange, onZoomChange, userPosition, shouldRecen
 };
 
 const MapView = () => {
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState('Todos');
   const [bboxString, setBboxString] = useState(null);
   const [currentZoom, setCurrentZoom] = useState(13);
@@ -269,7 +271,7 @@ const MapView = () => {
                       </div>
                       <div className="flex gap-1 mt-2">
                         <button onClick={(e) => { e.stopPropagation(); calculateRoute(lat, lng); }} className="flex-1 bg-white border-2 border-indigo-600 text-indigo-700 text-[10px] py-1.5 rounded-md font-bold flex items-center justify-center gap-1 hover:bg-indigo-50 transition-colors shadow-sm"><Navigation size={10} className="fill-current" /> Ruta</button>
-                        <button onClick={(e) => { e.stopPropagation(); if (res.isOsm) window.open(`https://www.openstreetmap.org/${res.id.replace('osm-', 'node/')}`, '_blank'); else window.location.href = `/restaurante/${res.id}`; }} className="flex-1 border border-primary text-primary text-[10px] py-1.5 rounded-md font-bold flex items-center justify-center gap-1 hover:bg-primary/5 transition-colors">Detalles <ExternalLink size={10} /></button>
+                        <button onClick={(e) => { e.stopPropagation(); if (res.isOsm) window.open(`https://www.openstreetmap.org/${res.id.replace('osm-', 'node/')}`, '_blank'); else navigate(`/restaurante/${res.id}`); }} className="flex-1 border border-primary text-primary text-[10px] py-1.5 rounded-md font-bold flex items-center justify-center gap-1 hover:bg-primary/5 transition-colors">Detalles <ExternalLink size={10} /></button>
                       </div>
                     </div>
                   </div>

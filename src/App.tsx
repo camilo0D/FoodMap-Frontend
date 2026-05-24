@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
 import MapPage from "./pages/MapPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import RestaurantDetailPage from "./pages/RestaurantDetailPage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
               </PrivateRoute>
             }
           />
+          <Route path="/restaurante/:id" element={<RestaurantDetailPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
