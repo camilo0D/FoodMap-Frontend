@@ -6,6 +6,9 @@ import { MapPin, UtensilsCrossed, ShoppingCart, Eye, Target, Heart, Clock, Star,
 import LoginDialog from "@/components/LoginDialog";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import RegisterDialog from "@/components/RegisterDialog";
+import { isAuthenticated, getUsername, getRoles, logoutUser } from "@/services/auth";
+import { useUserProfile } from "@/hooks/useProfile";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const restaurants = [
   {
@@ -81,6 +84,32 @@ const Index = () => {
   const [registerOpen, setRegisterOpen] = useState(false);
   const navigate = useNavigate();
 
+  const loggedIn = isAuthenticated();
+  const username = getUsername();
+  const roles = getRoles();
+  const isAdmin = roles.includes("admin");
+
+  const { data: profile } = useUserProfile({
+    enabled: loggedIn,
+  });
+
+  const API_BASE = "http://127.0.0.1:8000";
+  const resolvedAvatar = profile?.avatar
+    ? (profile.avatar.startsWith("http") ? profile.avatar : `${API_BASE}${profile.avatar}`)
+    : null;
+
+  const initials = (profile?.nombre || profile?.username || username || "U")
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  const handleLogout = async () => {
+    await logoutUser();
+    window.location.href = "/";
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
@@ -91,12 +120,54 @@ const Index = () => {
             <a href="#" className="text-foreground/80 hover:text-primary font-medium transition-colors">Inicio</a>
             <a href="#restaurants" className="text-foreground/80 hover:text-primary font-medium transition-colors">Restaurantes</a>
             <a href="#about" className="text-foreground/80 hover:text-primary font-medium transition-colors">Cómo funciona</a>
-            <button
-              onClick={() => setLoginOpen(true)}
-              className="text-foreground/80 hover:text-primary font-medium transition-colors"
-            >
-              Iniciar sesión
-            </button>
+            {loggedIn && (
+              <button
+                onClick={() => navigate("/mapa")}
+                className="text-foreground/80 hover:text-primary font-medium transition-colors"
+              >
+                Ver Mapa
+              </button>
+            )}
+            {loggedIn && isAdmin && (
+              <button
+                onClick={() => navigate("/admin")}
+                className="text-primary font-bold transition-colors hover:opacity-80"
+              >
+                Panel Admin
+              </button>
+            )}
+            {loggedIn ? (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => navigate("/perfil")}
+                  className="relative focus:outline-none transition-transform hover:scale-105 rounded-full"
+                  title="Mi Perfil"
+                  aria-label="Ir a Mi Perfil"
+                >
+                  <Avatar className="w-9 h-9 border border-border shadow-sm ring-2 ring-primary/10">
+                    {resolvedAvatar ? (
+                      <AvatarImage src={resolvedAvatar} alt={profile?.nombre || username || "Avatar"} />
+                    ) : null}
+                    <AvatarFallback className="text-xs font-bold bg-primary/10 text-primary">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="text-muted-foreground hover:text-destructive font-medium transition-colors"
+                >
+                  Cerrar sesión
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setLoginOpen(true)}
+                className="text-foreground/80 hover:text-primary font-medium transition-colors"
+              >
+                Iniciar sesión
+              </button>
+            )}
             <ThemeSwitcher />
           </nav>
         </div>
@@ -180,7 +251,7 @@ const Index = () => {
                       <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />
                     ))}
                   </div>
-                  <p className="text-sm text-foreground/80 mb-3 italic">"{r.especialidad}"</p>
+                  <p className="text-sm text-foreground/80 mb-3 italic font-medium">"{r.especialidad}"</p>
                   <div className="space-y-1.5 text-sm text-muted-foreground mb-4">
                     <div className="flex items-center gap-2">
                       <Clock className="w-3.5 h-3.5 text-primary" />

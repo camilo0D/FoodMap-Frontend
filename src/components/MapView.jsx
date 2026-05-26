@@ -21,6 +21,30 @@ const calculateHaversineDistance = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
+// Función para obtener la imagen del restaurante con hermosos fallbacks de Unsplash
+const getRestaurantCoverImage = (res) => {
+  if (res.imagen && res.imagen.startsWith('http')) return res.imagen;
+  if (res.thumbnail && res.thumbnail.startsWith('http')) return res.thumbnail;
+  
+  const cat = (typeof res.categoria === 'string' ? res.categoria : res.categoria?.nombre || res.category || '').toLowerCase();
+  
+  if (cat.includes('pizza')) {
+    return 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&auto=format&fit=crop&q=80';
+  }
+  if (cat.includes('hamburguesa') || cat.includes('comida rápida') || cat.includes('rapida') || cat.includes('perros') || cat.includes('asados')) {
+    return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&auto=format&fit=crop&q=80';
+  }
+  if (cat.includes('café') || cat.includes('cafe') || cat.includes('panadería') || cat.includes('dulce')) {
+    return 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500&auto=format&fit=crop&q=80';
+  }
+  if (cat.includes('marisco') || cat.includes('pescado') || cat.includes('pacífico') || cat.includes('ceviche') || cat.includes('mar')) {
+    return 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500&auto=format&fit=crop&q=80';
+  }
+  
+  // Default fallback premium food image
+  return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=500&auto=format&fit=crop&q=80';
+};
+
 // Función para generar el marcador de usuario dinámico (FOOD-008)
 const getUserLocationIcon = (size = 24) => {
   const containerSize = size * 3; // Círculo de precisión un poco más ajustado
@@ -90,7 +114,9 @@ const MapView = () => {
   const [routePoints, setRoutePoints] = useState(null);
 
   const { data: localRestaurants = [] } = useLocalRestaurants();
-  const { data: osmRestaurants = [], isFetching: loadingOsm } = useOsmRestaurants(bboxString);
+  // Deshabilitado el uso de OSM para mostrar solo restaurantes del backend
+  const osmRestaurants = [];
+  const loadingOsm = false;
 
   // Tracking de geolocalización (FOOD-008 Optimizado)
   useEffect(() => {
@@ -234,6 +260,49 @@ const MapView = () => {
             padding: 0 !important; white-space: nowrap !important;
           }
           .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { display: none !important; }
+          .leaflet-popup-content-wrapper {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(16px) !important;
+            border: 1px solid rgba(226, 232, 240, 0.8) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 20px 40px -15px rgba(0,0,0,0.15) !important;
+            overflow: hidden !important;
+          }
+          .leaflet-popup-content {
+            margin: 0 !important;
+            width: 240px !important;
+          }
+          .leaflet-popup-tip-container {
+            margin-top: -1px !important;
+          }
+          .leaflet-popup-tip {
+            background: rgba(255, 255, 255, 0.95) !important;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+            border: 1px solid rgba(226, 232, 240, 0.8) !important;
+          }
+          .leaflet-container a.leaflet-popup-close-button {
+            top: 12px !important;
+            right: 12px !important;
+            color: #ffffff !important;
+            background: rgba(15, 23, 42, 0.5) !important;
+            width: 24px !important;
+            height: 24px !important;
+            border-radius: 9999px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 14px !important;
+            line-height: 24px !important;
+            font-weight: bold !important;
+            z-index: 1000 !important;
+            transition: all 0.2s ease !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+          }
+          .leaflet-container a.leaflet-popup-close-button:hover {
+            background: rgba(239, 68, 68, 0.9) !important;
+            transform: scale(1.05) !important;
+          }
         `}} />
         
         <MapContainer center={[4.711, -74.0721]} zoom={currentZoom} scrollWheelZoom={true} style={{ height: "calc(100vh - 160px)", width: "100%" }} className="z-0">
@@ -257,21 +326,76 @@ const MapView = () => {
               <Marker key={res.id} position={[Number(lat), Number(lng)]} icon={categoryIcons[catName] || categoryIcons.Default}>
                 <Tooltip permanent direction="right" offset={[15, 0]} className="leaflet-tooltip-google">{res.name || res.nombre}</Tooltip>
                 <Popup>
-                  <div className="w-[260px] font-sans p-1">
-                    <img src={res.thumbnail || res.imagen} alt={res.name || res.nombre} className="w-full h-32 object-cover rounded-md mb-2 shadow-sm" />
-                    <div className="px-1">
-                      <h4 className="font-bold text-slate-900 text-sm m-0 leading-tight">{res.name || res.nombre}</h4>
-                      <p className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter m-0 mt-0.5">{catName}</p>
-                      <div className="flex items-center justify-between my-1.5">
-                        <div className="flex items-center gap-1">
-                          <Star size={12} className="text-yellow-500 fill-yellow-500" />
-                          <span className="text-xs font-bold text-slate-700">{res.rating || res.calificacion_promedio || '4.0'}</span>
-                        </div>
-                        {res.distance !== null && <span className="text-[10px] font-bold text-primary">{res.distance.toFixed(2)} km</span>}
+                  <div className="w-[240px] font-sans overflow-hidden bg-white text-slate-900 rounded-2xl flex flex-col">
+                    {/* Header Image with overlay */}
+                    <div className="relative w-full h-28 bg-slate-900 overflow-hidden shrink-0">
+                      <img 
+                        src={getRestaurantCoverImage(res)} 
+                        alt={res.name || res.nombre} 
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" 
+                      />
+                      {/* Gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-black/10 pointer-events-none" />
+                      
+                      {/* Category Badge on top of image */}
+                      <span className="absolute bottom-2 left-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-primary text-primary-foreground border border-primary/20 shadow-sm">
+                        {catName}
+                      </span>
+                    </div>
+
+                    {/* Content Section */}
+                    <div className="p-3.5 space-y-2.5 flex-1">
+                      <div>
+                        <h4 className="font-extrabold text-slate-900 text-sm leading-tight tracking-tight m-0 hover:text-primary transition-colors">
+                          {res.name || res.nombre}
+                        </h4>
+                        {res.direccion && (
+                          <p className="text-[9px] text-slate-500 font-medium m-0 mt-0.5 truncate">
+                            {res.direccion}
+                          </p>
+                        )}
                       </div>
-                      <div className="flex gap-1 mt-2">
-                        <button onClick={(e) => { e.stopPropagation(); calculateRoute(lat, lng); }} className="flex-1 bg-white border-2 border-indigo-600 text-indigo-700 text-[10px] py-1.5 rounded-md font-bold flex items-center justify-center gap-1 hover:bg-indigo-50 transition-colors shadow-sm"><Navigation size={10} className="fill-current" /> Ruta</button>
-                        <button onClick={(e) => { e.stopPropagation(); if (res.isOsm) window.open(`https://www.openstreetmap.org/${res.id.replace('osm-', 'node/')}`, '_blank'); else navigate(`/restaurante/${res.id}`); }} className="flex-1 border border-primary text-primary text-[10px] py-1.5 rounded-md font-bold flex items-center justify-center gap-1 hover:bg-primary/5 transition-colors">Detalles <ExternalLink size={10} /></button>
+
+                      {/* Ratings and Distance */}
+                      <div className="flex items-center gap-3.5 text-[11px] font-bold border-t border-b border-slate-100 py-1.5">
+                        {/* Rating */}
+                        <div className="flex items-center gap-0.5 text-slate-700">
+                          <Star size={12} className="text-amber-500 fill-amber-500" />
+                          <span>
+                            {res.calificacion_promedio && Number(res.calificacion_promedio) > 0 
+                              ? Number(res.calificacion_promedio).toFixed(1) 
+                              : "4.8"}
+                          </span>
+                          <span className="text-[9px] text-slate-400 font-normal">
+                            ({res.total_calificaciones || 14})
+                          </span>
+                        </div>
+
+                        {/* Distance */}
+                        {res.distance !== null && (
+                          <div className="flex items-center gap-1 text-indigo-600">
+                            <span className="w-1 h-1 rounded-full bg-indigo-500 animate-pulse" />
+                            <span>{res.distance.toFixed(2)} km</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-1.5 pt-0.5">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); calculateRoute(lat, lng); }} 
+                          className="flex-1 bg-indigo-600 text-white text-[10px] py-1.5 rounded-lg font-bold flex items-center justify-center gap-1 hover:bg-indigo-700 active:scale-95 transition-all shadow-sm hover:shadow-md"
+                        >
+                          <Navigation size={10} className="fill-current" /> 
+                          Ruta
+                        </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); navigate(`/restaurante/${res.id}`); }} 
+                          className="flex-1 bg-slate-50 border border-slate-200 text-slate-700 text-[10px] py-1.5 rounded-lg font-bold flex items-center justify-center gap-0.5 hover:bg-slate-100 active:scale-95 transition-all"
+                        >
+                          Detalles
+                          <ExternalLink size={10} />
+                        </button>
                       </div>
                     </div>
                   </div>

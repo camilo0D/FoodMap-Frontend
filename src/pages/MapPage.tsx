@@ -1,18 +1,35 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, LogOut } from "lucide-react";
+import { ArrowLeft, LogOut, ShieldAlert } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { logoutUser, getUsername } from "@/services/auth";
+import { logoutUser, getUsername, getRoles } from "@/services/auth";
 import { toast } from "sonner";
 import MapView from "@/components/MapView";
+import { useUserProfile } from "@/hooks/useProfile";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const MapPage = () => {
   const navigate = useNavigate();
   const username = getUsername();
+  const roles = getRoles();
+  const isAdmin = roles.includes("admin");
+  const { data: profile } = useUserProfile();
+
+  const API_BASE = "http://127.0.0.1:8000";
+  const resolvedAvatar = profile?.avatar
+    ? (profile.avatar.startsWith("http") ? profile.avatar : `${API_BASE}${profile.avatar}`)
+    : null;
+
+  const initials = (profile?.nombre || profile?.username || username || "U")
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   const handleLogout = async () => {
     await logoutUser();
     toast.success("Sesión cerrada");
-    navigate("/");
+    window.location.href = "/";
   };
 
   return (
@@ -33,11 +50,34 @@ const MapPage = () => {
           </span>
 
           <div className="ml-auto flex items-center gap-3">
-            {username && (
-              <span className="text-sm font-medium text-foreground hidden sm:inline">
-                Hola, {username}
-              </span>
+            {isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/admin")}
+                className="flex items-center gap-1.5 text-primary border-primary/20 hover:bg-primary/10 transition-colors font-bold"
+              >
+                <ShieldAlert className="w-3.5 h-3.5" />
+                Panel Admin
+              </Button>
             )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/perfil")}
+              className="relative focus:outline-none transition-transform hover:scale-105 rounded-full"
+              title="Mi Perfil"
+              aria-label="Ir a Mi Perfil"
+            >
+              <Avatar className="w-9 h-9 border border-border shadow-sm ring-2 ring-primary/10">
+                {resolvedAvatar ? (
+                  <AvatarImage src={resolvedAvatar} alt={profile?.nombre || username || "Avatar"} />
+                ) : null}
+                <AvatarFallback className="text-xs font-bold bg-primary/10 text-primary">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
             <Button
               variant="ghost"
               size="sm"
