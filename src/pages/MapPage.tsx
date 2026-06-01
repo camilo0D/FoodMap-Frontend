@@ -1,12 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, LogOut } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { logoutUser, getUsername } from "@/services/auth";
+import api from "@/lib/api";
+import SchemaOrg from "@/components/SchemaOrg";
+import SEOHead from "@/components/SEOHead";
+import FilterBar from "@/components/FilterBar";
+import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
+import { useState, useEffect } from "react";
 
 // Fix para los íconos de Leaflet en Vite
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -20,60 +25,78 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-const API_URL = "http://127.0.0.1:8000/api";
-
 interface Categoria {
-  id: string;
+  uuid: string;
   nombre: string;
   icono: string;
 }
 
 interface Restaurante {
-  id: string;
+  uuid: string;
   nombre: string;
   descripcion: string;
-  telefono: string;
-  imagen: string;
+  telefono?: string;
+  imagen?: string;
   direccion: string;
   latitud: number;
   longitud: number;
-  categoria: Categoria | null;
-  horario: Record<string, string>;
-  calificacion_promedio: number;
-  total_calificaciones: number;
+  categoria: Categoria;
+  horario?: string;
+  calificacion_promedio?: number;
+  total_calificaciones?: number;
 }
 
 const MapPage = () => {
   const navigate = useNavigate();
-  const [restaurantes, setRestaurantes] = useState<Restaurante[]>([]);
-  const [loading, setLoading] = useState(true);
-  const username = getUsername();
+  const { user, logout } = useAuth();
+  const [searchParams] = useSearchParams();
+  const [userPosition, setUserPosition] = useState<{ lat: number; lng: number } | null>(null);
 
+  // Get filter params
+  const searchQuery = searchParams.get('search') || '';
+  const categoryQuery = searchParams.get('categoria')?.split(',').filter(Boolean) || [];
+  const minRatingQuery = searchParams.get('min_rating') ? parseInt(searchParams.get('min_rating')!) : null;
+  const distanceQuery = searchParams.get('radio') ? parseInt(searchParams.get('radio')!) : null;
+  const latQuery = searchParams.get('lat');
+  const lngQuery = searchParams.get('lng');
+
+  // Get user geolocation
   useEffect(() => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      navigate("/");
-      return;
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        setUserPosition({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      });
     }
+  }, []);
 
-    const fetchRestaurantes = async () => {
-      try {
-        const res = await fetch(`${API_URL}/restaurantes/`);
-        const data = await res.json();
-        setRestaurantes(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error("Error cargando restaurantes:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Build query params
+  const buildQueryParams = () => {
+    const params: Record<string, any> = {};
+    if (searchQuery) params.search = searchQuery;
+    if (categoryQuery.length > 0) params.categoria = categoryQuery.join(',');
+    if (minRatingQuery) params.min_rating = minRatingQuery;
+    if (distanceQuery && latQuery && lngQuery) {
+      params.lat = latQuery;
+      params.lng = lngQuery;
+      params.radio = distanceQuery;
+    }
+    return params;
+  };
 
-    fetchRestaurantes();
-  }, [navigate]);
+  const { data: restaurantes = [], isLoading } = useQuery({
+    queryKey: ['restaurantes', searchQuery, categoryQuery, minRatingQuery, distanceQuery, latQuery, lngQuery],
+    queryFn: async () => {
+      const params = buildQueryParams();
+      const res = await api.get('/restaurantes/', { params });
+      return res.data;
+    },
+  });
 
   const handleLogout = async () => {
-    await logoutUser();
+    logout();
     toast.success("Sesión cerrada");
     navigate("/");
   };
@@ -81,10 +104,58 @@ const MapPage = () => {
   const center: [number, number] =
     restaurantes.length > 0
       ? [Number(restaurantes[0].latitud), Number(restaurantes[0].longitud)]
-      : [4.711, -74.0721];
+      : userPosition
+        ? [userPosition.lat, userPosition.lng]
+        : [4.711, -74.0721];
+
+  const itemListSchema = restaurantes.map((r, idx) => ({
+    '@type': 'ListItem',
+    'position': idx + 1,
+    'url': `${import.meta.env.VITE_APP_URL || window.location.origin}/restaurante/${r.uuid}`,
+    'name': r.nombre,
+  }));
+
+  const localBusinessSchema = restaurantes.map(r => ({
+    '@type': 'LocalBusiness',
+    'name': r.nombre,
+    'description': r.descripcion,
+    'address': {
+      '@type': 'PostalAddress',
+      'streetAddress': r.direccion,
+    },
+    'geo': {
+      '@type': 'GeoCoordinates',
+      'latitude': r.latitud,
+      'longitude': r.longitud,
+    },
+    'telephone': r.telefono,
+    'image': r.imagen,
+    'servesCuisine': r.categoria?.nombre,
+    ...(r.calificacion_promedio && {
+      'aggregateRating': {
+        '@type': 'AggregateRating',
+        'ratingValue': r.calificacion_promedio,
+        'reviewCount': r.total_calificaciones || 0,
+      },
+    }),
+  }));
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEOHead
+        title="Mapa de Restaurantes - FoodMap"
+        description="Explora todos nuestros restaurantes en el mapa interactivo. Encuentra comida deliciosa cerca de ti con calificaciones y reseñas."
+      />
+      <SchemaOrg
+        schema={{
+          '@type': 'ItemList',
+          'itemListElement': itemListSchema,
+        }}
+      />
+      {localBusinessSchema.map((schema, idx) => (
+        <SchemaOrg key={idx} schema={schema} />
+      ))}
+
       <header className="sticky top-0 z-50 bg-card shadow-nav">
         <div className="container flex items-center gap-4 py-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
@@ -96,14 +167,9 @@ const MapPage = () => {
           </span>
 
           <div className="ml-auto flex items-center gap-3">
-            {!loading && (
-              <span className="text-sm text-muted-foreground">
-                {restaurantes.length} restaurante{restaurantes.length !== 1 ? "s" : ""}
-              </span>
-            )}
-            {username && (
+            {user && (
               <span className="text-sm font-medium text-foreground hidden sm:inline">
-                Hola, {username}
+                Hola, {user.email}
               </span>
             )}
             <Button
@@ -119,60 +185,71 @@ const MapPage = () => {
         </div>
       </header>
 
-      <div style={{ height: "calc(100vh - 65px)", position: "relative" }}>
-        {loading ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-background">
-            <p className="text-muted-foreground">Cargando restaurantes...</p>
-          </div>
-        ) : (
-          <MapContainer
-            center={center}
-            zoom={14}
-            style={{ width: "100%", height: "100%" }}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+      <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
+        {/* Filter Panel */}
+        <div className="md:w-80 bg-card border-r overflow-y-auto p-4 flex flex-col gap-4">
+          <FilterBar
+            userPosition={userPosition || undefined}
+            resultsCount={restaurantes.length}
+          />
+        </div>
 
-            {restaurantes.map((restaurante) => (
-              <Marker
-                key={restaurante.id}
-                position={[Number(restaurante.latitud), Number(restaurante.longitud)]}
-              >
-                <Popup>
-                  <div style={{ minWidth: "180px" }}>
-                    {restaurante.imagen && (
-                      <img
-                        src={restaurante.imagen}
-                        alt={restaurante.nombre}
-                        style={{ width: "100%", height: "100px", objectFit: "cover", borderRadius: "6px", marginBottom: "8px" }}
-                      />
-                    )}
-                    <strong style={{ fontSize: "14px" }}>{restaurante.nombre}</strong>
-                    {restaurante.categoria && (
-                      <p style={{ fontSize: "12px", color: "#888", margin: "2px 0" }}>
-                        {restaurante.categoria.icono} {restaurante.categoria.nombre}
-                      </p>
-                    )}
-                    {restaurante.descripcion && (
-                      <p style={{ fontSize: "12px", margin: "4px 0" }}>{restaurante.descripcion}</p>
-                    )}
-                    <p style={{ fontSize: "12px", color: "#888" }}>{restaurante.direccion}</p>
-                    {restaurante.telefono && (
-                      <p style={{ fontSize: "12px", color: "#888" }}>📞 {restaurante.telefono}</p>
-                    )}
-                    {restaurante.calificacion_promedio > 0 && (
-                      <p style={{ fontSize: "12px", fontWeight: "bold", marginTop: "4px" }}>
-                        ⭐ {restaurante.calificacion_promedio} ({restaurante.total_calificaciones} reseñas)
-                      </p>
-                    )}
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
-        )}
+        {/* Map */}
+        <div className="flex-1 relative">
+          {isLoading ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-background">
+              <p className="text-muted-foreground">Cargando restaurantes...</p>
+            </div>
+          ) : (
+            <MapContainer
+              center={center}
+              zoom={14}
+              style={{ width: "100%", height: "100%" }}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+
+              {restaurantes.map((restaurante) => (
+                <Marker
+                  key={restaurante.uuid}
+                  position={[Number(restaurante.latitud), Number(restaurante.longitud)]}
+                >
+                  <Popup>
+                    <div style={{ minWidth: "180px" }}>
+                      {restaurante.imagen && (
+                        <img
+                          src={restaurante.imagen}
+                          alt={restaurante.nombre}
+                          style={{ width: "100%", height: "100px", objectFit: "cover", borderRadius: "6px", marginBottom: "8px" }}
+                        />
+                      )}
+                      <strong style={{ fontSize: "14px" }}>{restaurante.nombre}</strong>
+                      {restaurante.categoria && (
+                        <p style={{ fontSize: "12px", color: "#888", margin: "2px 0" }}>
+                          {restaurante.categoria.icono} {restaurante.categoria.nombre}
+                        </p>
+                      )}
+                      {restaurante.descripcion && (
+                        <p style={{ fontSize: "12px", margin: "4px 0" }}>{restaurante.descripcion}</p>
+                      )}
+                      <p style={{ fontSize: "12px", color: "#888" }}>{restaurante.direccion}</p>
+                      {restaurante.telefono && (
+                        <p style={{ fontSize: "12px", color: "#888" }}>📞 {restaurante.telefono}</p>
+                      )}
+                      {restaurante.calificacion_promedio && restaurante.calificacion_promedio > 0 && (
+                        <p style={{ fontSize: "12px", fontWeight: "bold", marginTop: "4px" }}>
+                          ⭐ {restaurante.calificacion_promedio} ({restaurante.total_calificaciones} reseñas)
+                        </p>
+                      )}
+                    </div>
+                  </Popup>
+                </Marker>
+              ))}
+            </MapContainer>
+          )}
+        </div>
       </div>
     </div>
   );

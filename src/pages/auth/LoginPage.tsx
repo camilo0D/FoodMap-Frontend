@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import SEOHead from "@/components/SEOHead";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -31,6 +32,10 @@ export default function LoginPage() {
 
   return (
     <div className="max-w-md mx-auto mt-20 p-6 border rounded-lg shadow-sm">
+      <SEOHead
+        title="Iniciar Sesión - FoodMap"
+        description="Accede a tu cuenta de FoodMap para explorar restaurantes y hacer pedidos."
+      />
       <h2 className="text-2xl font-bold mb-6 text-center">Iniciar Sesión</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         

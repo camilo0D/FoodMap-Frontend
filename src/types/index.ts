@@ -1,4 +1,5 @@
 export type Rol = 'USUARIO' | 'RESTAURANTE' | 'ADMIN';
+export type Role = 'USUARIO' | 'RESTAURANTE' | 'ADMIN';
 export type Estado = 'activo' | 'inactivo' | 'suspendido' | 'pendiente';
 
 export interface Perfil {

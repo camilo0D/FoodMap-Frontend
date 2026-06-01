@@ -6,6 +6,7 @@ import { registerUserSchema, RegisterUserFormValues } from "@/schemas/auth";
 import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import SEOHead from "@/components/SEOHead";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -26,6 +27,10 @@ export default function RegisterPage() {
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 border rounded-lg shadow-sm">
+      <SEOHead
+        title="Crear Cuenta - FoodMap"
+        description="Regístrate en FoodMap para acceder a un mapa interactivo de restaurantes cerca de ti."
+      />
       <h2 className="text-2xl font-bold mb-6 text-center">Registrar Usuario</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         

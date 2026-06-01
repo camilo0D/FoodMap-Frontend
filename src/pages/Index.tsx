@@ -7,6 +7,7 @@ import LoginDialog from "@/components/LoginDialog";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import SplashCTA from "@/components/SplashCTA";
 import RegisterDialog from "@/components/RegisterDialog";
+import SEOHead from "@/components/SEOHead";
 
 const restaurants = [
   {
@@ -85,6 +86,10 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="FoodMap - Encuentra la mejor comida cerca de ti"
+        description="Explora restaurantes, revisa su menú y haz pedidos fácilmente desde un mapa interactivo. Descubre los mejores lugares para comer en tu ciudad."
+      />
       {showSplash && <SplashCTA onEnter={() => setShowSplash(false)} />}
       {/* Navbar */}
       <header className="sticky top-0 z-50 bg-card shadow-nav">

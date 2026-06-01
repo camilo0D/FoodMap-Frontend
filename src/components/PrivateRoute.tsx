@@ -1,14 +1,21 @@
 import { Navigate } from "react-router-dom";
 import type { ReactNode } from "react";
+import { useAuth } from "@/context/AuthContext";
+import type { Role } from "@/types";
 
 type Props = {
   children: ReactNode;
+  requiredRole?: Role;
 };
 
-const PrivateRoute = ({ children }: Props) => {
-  const token = localStorage.getItem("token");
+const PrivateRoute = ({ children, requiredRole }: Props) => {
+  const { isAuthenticated, user } = useAuth();
 
-  if (!token) {
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (requiredRole && user?.rol !== requiredRole) {
     return <Navigate to="/" replace />;
   }
 
