@@ -1,3 +1,4 @@
+@import "leaflet/dist/leaflet.css";
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
 
 @tailwind base;
@@ -137,13 +138,15 @@
     --input: 210 15% 20%;
     --ring: 217 91% 60%;
   }
-
-  .leaflet-container {
-    height: 100vh;
-  }
 }
 
 @layer base {
+  .leaflet-container {
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+
   * {
     @apply border-border;
   }

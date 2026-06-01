@@ -35,7 +35,7 @@ const LoginDialog = ({ open, onOpenChange, onOpenRegister }: LoginDialogProps) =
       await loginUser(username, password);
       toast.success("Inicio de sesión correcto");
       onOpenChange(false);
-      navigate("/mapa");
+      window.location.href = "/mapa";
     } catch (error) {
       console.error(error);
       toast.error("Usuario o contraseña incorrectos");

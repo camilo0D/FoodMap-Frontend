@@ -2,12 +2,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-food.jpg";
 import { Button } from "@/components/ui/button";
-import { MapPin, UtensilsCrossed, ShoppingCart, Eye, Target, Heart, Clock, Star } from "lucide-react";
+import { MapPin, UtensilsCrossed, ShoppingCart, Eye, Target, Heart, Clock, Star, ChevronDown } from "lucide-react";
 import LoginDialog from "@/components/LoginDialog";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
-import SplashCTA from "@/components/SplashCTA";
 import RegisterDialog from "@/components/RegisterDialog";
-import SEOHead from "@/components/SEOHead";
+import { isAuthenticated, getUsername, getRoles, logoutUser } from "@/services/auth";
+import { useUserProfile } from "@/hooks/useProfile";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const restaurants = [
   {
@@ -81,16 +82,36 @@ const steps = [
 const Index = () => {
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
   const navigate = useNavigate();
+
+  const loggedIn = isAuthenticated();
+  const username = getUsername();
+  const roles = getRoles();
+  const isAdmin = roles.includes("admin");
+
+  const { data: profile } = useUserProfile({
+    enabled: loggedIn,
+  });
+
+  const API_BASE = "http://127.0.0.1:8000";
+  const resolvedAvatar = profile?.avatar
+    ? (profile.avatar.startsWith("http") ? profile.avatar : `${API_BASE}${profile.avatar}`)
+    : null;
+
+  const initials = (profile?.nombre || profile?.username || username || "U")
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  const handleLogout = async () => {
+    await logoutUser();
+    window.location.href = "/";
+  };
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead
-        title="FoodMap - Encuentra la mejor comida cerca de ti"
-        description="Explora restaurantes, revisa su menú y haz pedidos fácilmente desde un mapa interactivo. Descubre los mejores lugares para comer en tu ciudad."
-      />
-      {showSplash && <SplashCTA onEnter={() => setShowSplash(false)} />}
       {/* Navbar */}
       <header className="sticky top-0 z-50 bg-card shadow-nav">
         <div className="container flex items-center justify-between py-4">
@@ -99,12 +120,54 @@ const Index = () => {
             <a href="#" className="text-foreground/80 hover:text-primary font-medium transition-colors">Inicio</a>
             <a href="#restaurants" className="text-foreground/80 hover:text-primary font-medium transition-colors">Restaurantes</a>
             <a href="#about" className="text-foreground/80 hover:text-primary font-medium transition-colors">Cómo funciona</a>
-            <button
-              onClick={() => setLoginOpen(true)}
-              className="text-foreground/80 hover:text-primary font-medium transition-colors"
-            >
-              Iniciar sesión
-            </button>
+            {loggedIn && (
+              <button
+                onClick={() => navigate("/mapa")}
+                className="text-foreground/80 hover:text-primary font-medium transition-colors"
+              >
+                Ver Mapa
+              </button>
+            )}
+            {loggedIn && isAdmin && (
+              <button
+                onClick={() => navigate("/admin")}
+                className="text-primary font-bold transition-colors hover:opacity-80"
+              >
+                Panel Admin
+              </button>
+            )}
+            {loggedIn ? (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => navigate("/perfil")}
+                  className="relative focus:outline-none transition-transform hover:scale-105 rounded-full"
+                  title="Mi Perfil"
+                  aria-label="Ir a Mi Perfil"
+                >
+                  <Avatar className="w-9 h-9 border border-border shadow-sm ring-2 ring-primary/10">
+                    {resolvedAvatar ? (
+                      <AvatarImage src={resolvedAvatar} alt={profile?.nombre || username || "Avatar"} />
+                    ) : null}
+                    <AvatarFallback className="text-xs font-bold bg-primary/10 text-primary">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="text-muted-foreground hover:text-destructive font-medium transition-colors"
+                >
+                  Cerrar sesión
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setLoginOpen(true)}
+                className="text-foreground/80 hover:text-primary font-medium transition-colors"
+              >
+                Iniciar sesión
+              </button>
+            )}
             <ThemeSwitcher />
           </nav>
         </div>
@@ -136,6 +199,15 @@ const Index = () => {
               Cómo funciona
             </Button>
           </div>
+
+          {/* Scroll indicator */}
+          <div 
+            className="mt-6 flex flex-col items-center gap-2 text-primary-foreground/40 cursor-pointer hover:text-primary-foreground/70 transition-colors animate-bounce mx-auto"
+            onClick={() => document.getElementById("steps")?.scrollIntoView({ behavior: "smooth" })}
+          >
+            <span className="text-xs uppercase tracking-widest font-medium">Descubre más</span>
+            <ChevronDown className="w-7 h-9" />
+          </div>
         </div>
       </section>
 
@@ -161,7 +233,7 @@ const Index = () => {
       <section id="restaurants" className="py-20 px-6">
         <div className="container">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">Restaurantes destacados</h2>
-          <p className="text-center text-muted-foreground mb-14 text-lg">Los mejores lugares para comer cerca de ti en todo el globo</p>
+          <p className="text-center text-muted-foreground mb-14 text-lg">Los mejores lugares para comer cerca de ti</p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {restaurants.map((r, i) => (
               <div key={i} className="bg-card rounded-lg overflow-hidden shadow-card hover:shadow-lg transition-shadow">
@@ -179,7 +251,7 @@ const Index = () => {
                       <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />
                     ))}
                   </div>
-                  <p className="text-sm text-foreground/80 mb-3 italic">"{r.especialidad}"</p>
+                  <p className="text-sm text-foreground/80 mb-3 italic font-medium">"{r.especialidad}"</p>
                   <div className="space-y-1.5 text-sm text-muted-foreground mb-4">
                     <div className="flex items-center gap-2">
                       <Clock className="w-3.5 h-3.5 text-primary" />
@@ -252,22 +324,10 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="bg-primary py-20 px-6 text-center">
-        <div className="container max-w-2xl">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-8">
-            La comida que buscas está más cerca de lo que crees
-          </h2>
-          <Button variant="heroOutline" size="lg" onClick={() => navigate("/mapa")}>
-            Explorar restaurantes
-          </Button>
-        </div>
-      </section>
-
       {/* Footer */}
-      <footer className="bg-foreground py-10 text-center">
-        <p className="text-background font-semibold">FoodMap © 2026</p>
-        <p className="text-background/60 text-sm mt-1">Encuentra comida rápida cerca de ti</p>
+      <footer className="bg-card py-10 text-center border-t border-border">
+        <p className="text-primary font-semibold">FoodMap © 2026</p>
+        <p className="text-primary/60 text-sm mt-1">Encuentra comida rápida cerca de ti</p>
       </footer>
 
       {/* Login Dialog */}
