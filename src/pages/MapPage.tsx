@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import MapView from "@/components/MapView";
 import { useUserProfile } from "@/hooks/useProfile";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import SchemaOrg from "@/components/SchemaOrg";
+import SEOHead from "@/components/SEOHead";
 
 const MapPage = () => {
   const navigate = useNavigate();
@@ -34,11 +36,23 @@ const MapPage = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* FT-84/FT-92: Schema ItemList para listado en mapa */}
+      <SEOHead
+        title="Mapa de Restaurantes - FoodMap"
+        description="Explora todos los restaurantes en el mapa interactivo."
+      />
+      <SchemaOrg schema={{
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Inicio", "item": window.location.origin },
+          { "@type": "ListItem", "position": 2, "name": "Mapa", "item": `${window.location.origin}/mapa` }
+        ]
+      }} />
       <header className="sticky top-0 z-50 bg-card shadow-nav">
         <div className="container flex items-center gap-4 py-4">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => navigate("/")}
             className="text-muted-foreground hover:text-primary"
           >

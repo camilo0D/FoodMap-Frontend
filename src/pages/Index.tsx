@@ -9,6 +9,8 @@ import RegisterDialog from "@/components/RegisterDialog";
 import { isAuthenticated, getUsername, getRoles, logoutUser } from "@/services/auth";
 import { useUserProfile } from "@/hooks/useProfile";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import SchemaOrg from "@/components/SchemaOrg";
+import SEOHead from "@/components/SEOHead";
 
 const restaurants = [
   {
@@ -112,7 +114,32 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navbar */}
+      {/* FT-91: Schema WebSite con searchbox */}
+      <SEOHead
+        title="FoodMap - Encuentra la mejor comida cerca de ti"
+        description="Explora restaurantes, revisa su menú y haz pedidos fácilmente desde un mapa interactivo."
+        url={window.location.origin}
+      />
+      <SchemaOrg schema={{
+        "@type": "WebSite",
+        "name": "FoodMap",
+        "url": window.location.origin,
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": `${window.location.origin}/mapa?search={search_term_string}`
+          },
+          "query-input": "required name=search_term_string"
+        }
+      }} />
+      {/* FT-89: Schema LocalBusiness */}
+      <SchemaOrg schema={{
+        "@type": "LocalBusiness",
+        "name": "FoodMap",
+        "description": "Plataforma para encontrar restaurantes cerca de ti",
+        "url": window.location.origin,
+      }} />
       <header className="sticky top-0 z-50 bg-card shadow-nav">
         <div className="container flex items-center justify-between py-4">
           <span className="text-2xl font-bold text-primary">FoodMap</span>
@@ -201,7 +228,7 @@ const Index = () => {
           </div>
 
           {/* Scroll indicator */}
-          <div 
+          <div
             className="mt-6 flex flex-col items-center gap-2 text-primary-foreground/40 cursor-pointer hover:text-primary-foreground/70 transition-colors animate-bounce mx-auto"
             onClick={() => document.getElementById("steps")?.scrollIntoView({ behavior: "smooth" })}
           >

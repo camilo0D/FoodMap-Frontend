@@ -1,18 +1,20 @@
+import SchemaOrg from "@/components/SchemaOrg";
+import SEOHead from "@/components/SEOHead";
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import useEmblaCarousel from "embla-carousel-react";
 import { useForm } from "react-hook-form";
-import { 
-  Star, 
-  Clock, 
-  MapPin, 
-  Phone, 
-  ArrowLeft, 
-  Send, 
-  MessageSquare, 
-  UtensilsCrossed, 
-  ChevronLeft, 
+import {
+  Star,
+  Clock,
+  MapPin,
+  Phone,
+  ArrowLeft,
+  Send,
+  MessageSquare,
+  UtensilsCrossed,
+  ChevronLeft,
   ChevronRight,
   Sparkles
 } from "lucide-react";
@@ -20,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { getUsername, isAuthenticated } from "@/services/auth";
+
 
 interface Review {
   user: string;
@@ -117,7 +120,7 @@ const getMockImages = (categoryName: string, mainImage: string) => {
     if (images.length >= 3) break;
     if (!images.includes(url)) images.push(url);
   }
-  
+
   while (images.length < 3) {
     images.push("https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1000&auto=format&fit=crop&q=80");
   }
@@ -187,6 +190,44 @@ const RestaurantDetailPage = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
+        {/* FT-88: Schema Restaurant */}
+        <SEOHead
+          title={`${rest.nombre} - FoodMap`}
+          description={rest.descripcion || `${rest.nombre} en FoodMap`}
+          url={`${window.location.origin}/restaurante/${rest.id}`}
+          image={rest.imagen}
+        />
+        <SchemaOrg schema={{
+          "@type": "Restaurant",
+          "name": rest.nombre,
+          "description": rest.descripcion,
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": rest.direccion,
+          },
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": rest.latitud,
+            "longitude": rest.longitud,
+          },
+          "telephone": rest.telefono,
+          "image": rest.imagen,
+          "servesCuisine": categoryName,
+          "aggregateRating": rest.calificacion_promedio > 0 ? {
+            "@type": "AggregateRating",
+            "ratingValue": rest.calificacion_promedio,
+            "reviewCount": rest.total_calificaciones,
+          } : undefined,
+        }} />
+        {/* FT-90: BreadcrumbList */}
+        <SchemaOrg schema={{
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Inicio", "item": window.location.origin },
+            { "@type": "ListItem", "position": 2, "name": "Mapa", "item": `${window.location.origin}/mapa` },
+            { "@type": "ListItem", "position": 3, "name": rest.nombre, "item": `${window.location.origin}/restaurante/${rest.id}` },
+          ]
+        }} />
         <header className="sticky top-0 z-50 bg-card border-b border-border">
           <div className="container py-4 flex items-center justify-between">
             <div className="w-24 h-8 bg-muted animate-pulse rounded" />
@@ -263,9 +304,9 @@ const RestaurantDetailPage = () => {
       <header className="sticky top-0 z-50 bg-card/85 backdrop-blur-md border-b border-border/60 transition-colors">
         <div className="container py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => navigate("/mapa")}
               className="text-muted-foreground hover:text-primary transition-colors rounded-full"
             >
@@ -281,7 +322,7 @@ const RestaurantDetailPage = () => {
 
       {/* Main Content Container */}
       <main className="container max-w-4xl py-6 px-4 space-y-8 animate-fade-in">
-        
+
         {/* Navigation Breadcrumb & Back Link */}
         <div className="flex items-center text-xs text-muted-foreground gap-2">
           <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>
@@ -297,10 +338,10 @@ const RestaurantDetailPage = () => {
             <div className="flex h-full">
               {images.map((img, i) => (
                 <div key={i} className="min-w-full relative h-full bg-slate-900">
-                  <img 
-                    src={img} 
-                    className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" 
-                    alt={`Galería de ${rest.nombre} - ${i + 1}`} 
+                  <img
+                    src={img}
+                    className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                    alt={`Galería de ${rest.nombre} - ${i + 1}`}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
                 </div>
@@ -311,7 +352,7 @@ const RestaurantDetailPage = () => {
           {/* Navigation Controls */}
           {images.length > 1 && (
             <>
-              <button 
+              <button
                 onClick={scrollPrev}
                 disabled={!prevBtnEnabled}
                 className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-card/90 border border-border flex items-center justify-center shadow-md hover:bg-primary hover:text-primary-foreground disabled:opacity-0 disabled:pointer-events-none transition-all duration-300 transform hover:scale-105 z-10"
@@ -319,7 +360,7 @@ const RestaurantDetailPage = () => {
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
-              <button 
+              <button
                 onClick={scrollNext}
                 disabled={!nextBtnEnabled}
                 className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-card/90 border border-border flex items-center justify-center shadow-md hover:bg-primary hover:text-primary-foreground disabled:opacity-0 disabled:pointer-events-none transition-all duration-300 transform hover:scale-105 z-10"
@@ -341,7 +382,7 @@ const RestaurantDetailPage = () => {
         {/* Subtarea: Sección Información */}
         <section className="bg-card rounded-2xl p-6 border border-border/60 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full pointer-events-none" />
-          
+
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary mb-3">
@@ -353,7 +394,7 @@ const RestaurantDetailPage = () => {
                 <p className="mt-3 text-muted-foreground text-sm leading-relaxed max-w-2xl">{rest.descripcion}</p>
               )}
             </div>
-            
+
             <div className="flex items-center gap-2 bg-muted/30 border border-border/40 px-4 py-2.5 rounded-xl self-start shrink-0">
               <Star className="w-5 h-5 fill-amber-500 text-amber-500 animate-pulse" />
               <div className="text-right">
@@ -376,7 +417,7 @@ const RestaurantDetailPage = () => {
                 <Clock className="w-4 h-4 text-primary" />
               </div>
               <span className="font-medium">
-                {typeof rest.horario === "object" 
+                {typeof rest.horario === "object"
                   ? Object.entries(rest.horario).map(([day, hrs]) => `${day}: ${hrs}`).join(" | ").slice(0, 35) + "..."
                   : rest.horario || "Horario no especificado"}
               </span>
@@ -456,18 +497,18 @@ const RestaurantDetailPage = () => {
 
           {/* Subtarea: Botón para escribir reseña (solo si está autenticado) */}
           {loggedIn ? (
-            <form 
-              onSubmit={handleSubmit(onReviewSubmit)} 
+            <form
+              onSubmit={handleSubmit(onReviewSubmit)}
               className="p-6 bg-card border border-border/60 rounded-2xl shadow-sm space-y-4 transition-colors"
             >
               <div className="flex items-center justify-between border-b border-border/40 pb-3">
                 <h3 className="font-bold text-foreground text-base">Escribe tu opinión</h3>
                 <span className="text-xs text-muted-foreground">Publicando como <strong className="text-foreground font-bold">{loggedInUser}</strong></span>
               </div>
-              
+
               <div className="space-y-1">
                 <label className="block text-sm font-semibold text-foreground">Calificación:</label>
-                
+
                 {/* Custom Interactive Stars for React Hook Form (instead of simple select) */}
                 <div className="flex items-center gap-1.5 pt-1">
                   {[1, 2, 3, 4, 5].map((n) => (
@@ -477,12 +518,11 @@ const RestaurantDetailPage = () => {
                       onClick={() => setValue("rating", n)}
                       className="focus:outline-none transition-transform duration-100 hover:scale-110 active:scale-95"
                     >
-                      <Star 
-                        className={`w-8 h-8 transition-colors ${
-                          n <= ratingValue 
-                            ? "fill-amber-500 text-amber-500" 
-                            : "text-muted-foreground/30 hover:text-amber-300"
-                        }`}
+                      <Star
+                        className={`w-8 h-8 transition-colors ${n <= ratingValue
+                          ? "fill-amber-500 text-amber-500"
+                          : "text-muted-foreground/30 hover:text-amber-300"
+                          }`}
                       />
                     </button>
                   ))}
@@ -498,13 +538,13 @@ const RestaurantDetailPage = () => {
 
               <div className="space-y-1">
                 <label htmlFor="comment" className="block text-sm font-semibold text-foreground">Comentario:</label>
-                <textarea 
+                <textarea
                   id="comment"
-                  {...register("comment", { 
+                  {...register("comment", {
                     required: "Por favor escribe un comentario para enviar tu reseña.",
                     minLength: { value: 10, message: "El comentario debe tener al menos 10 caracteres." }
                   })}
-                  className="w-full min-h-[100px] p-3.5 bg-background border border-border/80 rounded-xl text-sm focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none resize-y" 
+                  className="w-full min-h-[100px] p-3.5 bg-background border border-border/80 rounded-xl text-sm focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none resize-y"
                   placeholder="Comparte tu experiencia con este restaurante..."
                 />
                 {errors.comment && (
@@ -522,9 +562,9 @@ const RestaurantDetailPage = () => {
           ) : (
             <div className="p-6 bg-muted/40 border border-border/40 rounded-2xl text-center space-y-3">
               <p className="text-muted-foreground text-sm">Debes iniciar sesión para poder calificar este restaurante y compartir tu reseña.</p>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => navigate("/")}
                 className="text-primary border-primary/30 hover:bg-primary hover:text-primary-foreground hover:border-transparent transition-all font-semibold"
               >
@@ -536,8 +576,8 @@ const RestaurantDetailPage = () => {
           {/* Subtarea: Lista de comentarios */}
           <div className="space-y-4">
             {allReviews.map((rev, i) => (
-              <div 
-                key={i} 
+              <div
+                key={i}
                 className="bg-card border border-border/60 p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300"
               >
                 <div className="flex justify-between items-start gap-4">
@@ -550,17 +590,16 @@ const RestaurantDetailPage = () => {
                       <span className="text-[10px] text-muted-foreground mt-0.5 block">{rev.date}</span>
                     </div>
                   </div>
-                  
+
                   {/* Rating display */}
                   <div className="flex items-center gap-0.5">
                     {Array.from({ length: 5 }).map((_, idx) => (
-                      <Star 
-                        key={idx} 
-                        className={`w-3.5 h-3.5 ${
-                          idx < rev.rating 
-                            ? "fill-amber-500 text-amber-500" 
-                            : "text-muted-foreground/30"
-                        }`}
+                      <Star
+                        key={idx}
+                        className={`w-3.5 h-3.5 ${idx < rev.rating
+                          ? "fill-amber-500 text-amber-500"
+                          : "text-muted-foreground/30"
+                          }`}
                       />
                     ))}
                   </div>
