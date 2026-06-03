@@ -190,44 +190,6 @@ const RestaurantDetailPage = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        {/* FT-88: Schema Restaurant */}
-        <SEOHead
-          title={`${rest.nombre} - FoodMap`}
-          description={rest.descripcion || `${rest.nombre} en FoodMap`}
-          url={`${window.location.origin}/restaurante/${rest.id}`}
-          image={rest.imagen}
-        />
-        <SchemaOrg schema={{
-          "@type": "Restaurant",
-          "name": rest.nombre,
-          "description": rest.descripcion,
-          "address": {
-            "@type": "PostalAddress",
-            "streetAddress": rest.direccion,
-          },
-          "geo": {
-            "@type": "GeoCoordinates",
-            "latitude": rest.latitud,
-            "longitude": rest.longitud,
-          },
-          "telephone": rest.telefono,
-          "image": rest.imagen,
-          "servesCuisine": categoryName,
-          "aggregateRating": rest.calificacion_promedio > 0 ? {
-            "@type": "AggregateRating",
-            "ratingValue": rest.calificacion_promedio,
-            "reviewCount": rest.total_calificaciones,
-          } : undefined,
-        }} />
-        {/* FT-90: BreadcrumbList */}
-        <SchemaOrg schema={{
-          "@type": "BreadcrumbList",
-          "itemListElement": [
-            { "@type": "ListItem", "position": 1, "name": "Inicio", "item": window.location.origin },
-            { "@type": "ListItem", "position": 2, "name": "Mapa", "item": `${window.location.origin}/mapa` },
-            { "@type": "ListItem", "position": 3, "name": rest.nombre, "item": `${window.location.origin}/restaurante/${rest.id}` },
-          ]
-        }} />
         <header className="sticky top-0 z-50 bg-card border-b border-border">
           <div className="container py-4 flex items-center justify-between">
             <div className="w-24 h-8 bg-muted animate-pulse rounded" />

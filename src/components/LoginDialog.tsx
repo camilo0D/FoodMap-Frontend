@@ -10,9 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 interface LoginDialogProps {
@@ -22,7 +20,6 @@ interface LoginDialogProps {
 }
 
 const LoginDialog = ({ open, onOpenChange, onOpenRegister }: LoginDialogProps) => {
-  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,12 +27,11 @@ const LoginDialog = ({ open, onOpenChange, onOpenRegister }: LoginDialogProps) =
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       await loginUser(username, password);
       toast.success("Inicio de sesión correcto");
       onOpenChange(false);
-      window.location.href = "/mapa";
+      window.location.href = "/";
     } catch (error) {
       console.error(error);
       toast.error("Usuario o contraseña incorrectos");
@@ -51,7 +47,6 @@ const LoginDialog = ({ open, onOpenChange, onOpenRegister }: LoginDialogProps) =
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-
         <DialogHeader>
           <DialogTitle className="text-2xl text-center">Iniciar sesión</DialogTitle>
           <DialogDescription className="text-center">
@@ -86,7 +81,6 @@ const LoginDialog = ({ open, onOpenChange, onOpenRegister }: LoginDialogProps) =
               required
             />
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="password">Contraseña</Label>
             <Input
@@ -97,11 +91,9 @@ const LoginDialog = ({ open, onOpenChange, onOpenRegister }: LoginDialogProps) =
               required
             />
           </div>
-
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Iniciando sesión..." : "Iniciar sesión"}
           </Button>
-
           <p className="text-center text-sm text-muted-foreground">
             ¿No tienes cuenta?{" "}
             <button
@@ -116,7 +108,6 @@ const LoginDialog = ({ open, onOpenChange, onOpenRegister }: LoginDialogProps) =
             </button>
           </p>
         </form>
-
       </DialogContent>
     </Dialog>
   );

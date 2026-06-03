@@ -163,6 +163,14 @@ const Index = () => {
                 Panel Admin
               </button>
             )}
+            {loggedIn && roles.includes("restaurante") && (
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="text-primary font-bold transition-colors hover:opacity-80"
+              >
+                Mi Restaurante
+              </button>
+            )}
             {loggedIn ? (
               <div className="flex items-center gap-3">
                 <button

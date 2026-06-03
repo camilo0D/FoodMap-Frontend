@@ -14,18 +14,19 @@ export const useLocalRestaurants = () => {
       try {
         const response = await fetch(`${API_URL}/restaurantes/`);
         if (!response.ok) throw new Error('Error backend');
-        return await response.json();
+        const data = await response.json();
+        // Extraer el array results si existe paginación
+        return Array.isArray(data) ? data : (data.results || []);
       } catch (err) {
         console.error("Error fetching local restaurants:", err);
         return [];
       }
     },
-    staleTime: 1000 * 60 * 30, // 30 minutos de caché
-    gcTime: 1000 * 60 * 60,    // Mantener 1 hora en memoria
+    staleTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 60,
     refetchOnWindowFocus: false,
   });
 };
-
 /**
  * Hook para obtener puntos de comida desde OpenStreetMap usando Overpass API.
  * Filtra por el Bounding Box (bbox) proporcionado.
@@ -35,7 +36,7 @@ export const useOsmRestaurants = (bboxString) => {
     queryKey: ['osm-food-points', bboxString],
     queryFn: async () => {
       if (!bboxString) return [];
-      
+
       const query = `
         [out:json][timeout:25];
         (
@@ -45,12 +46,12 @@ export const useOsmRestaurants = (bboxString) => {
         );
         out center;
       `;
-      
+
       try {
         const response = await fetch(`${OVERPASS_URL}?data=${encodeURIComponent(query)}`);
         if (!response.ok) throw new Error('Overpass Error');
         const data = await response.json();
-        
+
         return data.elements
           .map(el => {
             const lat = el.lat || el.center?.lat;
@@ -62,7 +63,7 @@ export const useOsmRestaurants = (bboxString) => {
             const amenity = (tags.amenity || "").toLowerCase();
 
             let category = 'Restaurante';
-            
+
             // Lógica de detección inteligente por cocina o tipo
             if (cuisine.includes('pizza')) category = 'Pizza';
             else if (cuisine.includes('burger') || cuisine.includes('hamburger')) category = 'Hamburguesa';

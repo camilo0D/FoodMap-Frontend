@@ -310,9 +310,9 @@ const AdminPage = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate("/mapa")}
+              onClick={() => navigate("/")}
               className="text-muted-foreground hover:text-primary transition-colors rounded-full"
-              title="Volver al Mapa"
+              title="Volver al Inicio"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
@@ -593,10 +593,10 @@ const AdminPage = () => {
                           <TableCell className="align-middle text-xs text-muted-foreground">
                             {user.created_at
                               ? new Date(user.created_at).toLocaleDateString("es-ES", {
-                                  day: "2-digit",
-                                  month: "short",
-                                  year: "numeric",
-                                })
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              })
                               : "-"}
                           </TableCell>
                           <TableCell className="text-right align-middle">
@@ -654,6 +654,18 @@ const AdminPage = () => {
                                       onClick={() =>
                                         updateUserMutation.mutate({
                                           userId: user.id,
+                                          roles: ["usuario"],
+                                        })
+                                      }
+                                      className="gap-2 text-xs"
+                                    >
+                                      <User className="w-3.5 h-3.5" />
+                                      Hacer Usuario
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        updateUserMutation.mutate({
+                                          userId: user.id,
                                           roles: user.roles.includes("admin") ? ["usuario"] : ["admin"],
                                         })
                                       }
@@ -672,9 +684,7 @@ const AdminPage = () => {
                                       className="gap-2 text-xs"
                                     >
                                       <Store className="w-3.5 h-3.5" />
-                                      {user.roles.includes("restaurante")
-                                        ? "Quitar Restaurante"
-                                        : "Hacer Restaurante"}
+                                      {user.roles.includes("restaurante") ? "Quitar Restaurante" : "Hacer Restaurante"}
                                     </DropdownMenuItem>
 
                                     <DropdownMenuSeparator />
@@ -818,7 +828,7 @@ const AdminPage = () => {
                           <TableCell className="align-middle">
                             <div className="flex items-center gap-1.5">
                               <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
-                              <span className="font-bold text-xs">{rest.calificacion_promedio.toFixed(1)}</span>
+                              <span className="font-bold text-xs">{Number(rest.calificacion_promedio).toFixed(1)}</span>
                               <span className="text-[10px] text-muted-foreground">
                                 ({rest.total_calificaciones})
                               </span>
@@ -1009,12 +1019,12 @@ const AdminPage = () => {
                   <p className="text-xs font-semibold text-foreground pt-0.5">
                     {selectedUser.created_at
                       ? new Date(selectedUser.created_at).toLocaleDateString("es-ES", {
-                          day: "2-digit",
-                          month: "long",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
                       : "No disponible"}
                   </p>
                 </div>
