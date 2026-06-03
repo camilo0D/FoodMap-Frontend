@@ -16,11 +16,19 @@ export interface AdminStats {
 }
 
 export const fetchAdminStats = async (): Promise<AdminStats> => {
-  const res = await fetch(`${API_URL}/stats/`, {
+  const res = await fetch(`${API_URL}/dashboard/`, {
     headers: getHeaders(),
   });
   if (!res.ok) throw new Error("Error fetching admin stats");
-  return res.json();
+  const data = await res.json();
+  // Adaptar la respuesta del backend
+  return {
+    total_users: data.usuarios?.total || 0,
+    total_restaurants: data.restaurantes?.total || 0,
+    total_reviews: data.resenas?.total || 0,
+    total_categories: 0,
+    categories: [],
+  };
 };
 
 export interface UserFilters {

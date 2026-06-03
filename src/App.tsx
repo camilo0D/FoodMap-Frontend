@@ -11,6 +11,7 @@ import AdminPage from "./pages/AdminPage.tsx";
 import ProfilePage from "./pages/ProfilePage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import RestaurantDetailPage from "./pages/RestaurantDetailPage.tsx";
+import DashboardPage from "./pages/DashboardPage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,14 @@ const App = () => (
               <AdminRoute>
                 <AdminPage />
               </AdminRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <DashboardPage />
+              </PrivateRoute>
             }
           />
           <Route path="/restaurante/:id" element={<RestaurantDetailPage />} />
