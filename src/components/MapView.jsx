@@ -1,16 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMapEvents, Polyline } from 'react-leaflet';
-import { Star, ExternalLink, Loader2, Globe, Search, Navigation, AlertTriangle } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Star, ExternalLink, Navigation, AlertTriangle } from 'lucide-react';
 import { getCategoryIcons } from './icons';
-import { useLocalRestaurants, useOsmRestaurants } from '@/hooks/useRestaurants';
+import { useLocalRestaurants } from '@/hooks/useRestaurants';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import FilterBar from "./FilterBar";
 
-// Subtarea: Fórmula Haversine en JS para calcular distancia en km
 const calculateHaversineDistance = (lat1, lon1, lat2, lon2) => {
-  const R = 6371; // Radio de la Tierra en km
+  const R = 6371;
   const dLat = (lat2 - lat1) * (Math.PI / 180);
   const dLon = (lon2 - lon1) * (Math.PI / 180);
   const a =
@@ -21,40 +20,24 @@ const calculateHaversineDistance = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
-// Función para obtener la imagen del restaurante con hermosos fallbacks de Unsplash
 const getRestaurantCoverImage = (res) => {
   if (res.imagen && res.imagen.startsWith('http')) return res.imagen;
   if (res.thumbnail && res.thumbnail.startsWith('http')) return res.thumbnail;
-  
   const cat = (typeof res.categoria === 'string' ? res.categoria : res.categoria?.nombre || res.category || '').toLowerCase();
-  
-  if (cat.includes('pizza')) {
-    return 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&auto=format&fit=crop&q=80';
-  }
-  if (cat.includes('hamburguesa') || cat.includes('comida rápida') || cat.includes('rapida') || cat.includes('perros') || cat.includes('asados')) {
-    return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&auto=format&fit=crop&q=80';
-  }
-  if (cat.includes('café') || cat.includes('cafe') || cat.includes('panadería') || cat.includes('dulce')) {
-    return 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500&auto=format&fit=crop&q=80';
-  }
-  if (cat.includes('marisco') || cat.includes('pescado') || cat.includes('pacífico') || cat.includes('ceviche') || cat.includes('mar')) {
-    return 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500&auto=format&fit=crop&q=80';
-  }
-  
-  // Default fallback premium food image
+  if (cat.includes('pizza')) return 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&auto=format&fit=crop&q=80';
+  if (cat.includes('hamburguesa') || cat.includes('comida rápida') || cat.includes('rapida')) return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&auto=format&fit=crop&q=80';
+  if (cat.includes('café') || cat.includes('cafe') || cat.includes('panadería')) return 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500&auto=format&fit=crop&q=80';
+  if (cat.includes('marisco') || cat.includes('pescado') || cat.includes('pacífico') || cat.includes('ceviche')) return 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500&auto=format&fit=crop&q=80';
   return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=500&auto=format&fit=crop&q=80';
 };
 
-// Función para generar el marcador de usuario dinámico (FOOD-008)
 const getUserLocationIcon = (size = 24) => {
-  const containerSize = size * 3; // Círculo de precisión un poco más ajustado
+  const containerSize = size * 3;
   return L.divIcon({
     className: 'custom-user-icon',
     html: `
       <div style="width: ${containerSize}px; height: ${containerSize}px;" class="relative flex items-center justify-center">
-        <!-- Área de precisión (círculo azul claro transparente) -->
         <div class="absolute h-full w-full rounded-full" style="background-color: rgba(66, 133, 244, 0.15); border: 1px solid rgba(66, 133, 244, 0.3);"></div>
-        <!-- Punto azul central con borde blanco -->
         <div style="width: ${size}px; height: ${size}px; background-color: #4285F4; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.4);" class="relative rounded-full"></div>
       </div>
     `,
@@ -63,7 +46,6 @@ const getUserLocationIcon = (size = 24) => {
   });
 };
 
-// Componente para manejar eventos y controlador de centrado (FOOD-008)
 const MapController = ({ onBoundsChange, onZoomChange, userPosition, shouldRecenter, setShouldRecenter }) => {
   const map = useMapEvents({
     moveend: () => {
@@ -84,10 +66,7 @@ const MapController = ({ onBoundsChange, onZoomChange, userPosition, shouldRecen
 
   useEffect(() => {
     if (userPosition && shouldRecenter) {
-      map.flyTo([userPosition.lat, userPosition.lng], 15, {
-        animate: true,
-        duration: 1.5
-      });
+      map.flyTo([userPosition.lat, userPosition.lng], 15, { animate: true, duration: 1.5 });
       setShouldRecenter(false);
     }
   }, [userPosition, shouldRecenter, map, setShouldRecenter]);
@@ -104,7 +83,6 @@ const MapController = ({ onBoundsChange, onZoomChange, userPosition, shouldRecen
 
 const MapView = () => {
   const navigate = useNavigate();
-  const [activeCategory, setActiveCategory] = useState('Todos');
   const [bboxString, setBboxString] = useState(null);
   const [currentZoom, setCurrentZoom] = useState(13);
   const [searchTerm, setSearchTerm] = useState('');
@@ -112,36 +90,31 @@ const MapView = () => {
   const [shouldRecenter, setShouldRecenter] = useState(false);
   const [geoError, setGeoError] = useState(null);
   const [routePoints, setRoutePoints] = useState(null);
+  const [activeCategorias, setActiveCategorias] = useState([]);
+  const [minRating, setMinRating] = useState(0);
+  const [distancia, setDistancia] = useState(10);
+  const [categorias, setCategorias] = useState([]);
 
   const { data: localRestaurants = [] } = useLocalRestaurants();
-  // Deshabilitado el uso de OSM para mostrar solo restaurantes del backend
   const osmRestaurants = [];
-  const loadingOsm = false;
 
-  // Tracking de geolocalización (FOOD-008 Optimizado)
+  // Geolocalización
   useEffect(() => {
     if (!navigator.geolocation) {
       setGeoError('Tu navegador no soporta geolocalización.');
       return;
     }
-
-    // Captura inicial rápida
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        setUserPosition(coords);
+        setUserPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setShouldRecenter(true);
       },
       null,
       { enableHighAccuracy: true, timeout: 5000 }
     );
-
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
-        setUserPosition({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        });
+        setUserPosition({ lat: position.coords.latitude, lng: position.coords.longitude });
         setGeoError(null);
       },
       (error) => {
@@ -153,8 +126,15 @@ const MapView = () => {
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
-
     return () => navigator.geolocation.clearWatch(watchId);
+  }, []);
+
+  // Fetch categorías
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/api/restaurantes/categorias/")
+      .then(res => res.json())
+      .then(data => setCategorias(data))
+      .catch(() => { });
   }, []);
 
   const calculateRoute = async (destLat, destLng) => {
@@ -182,64 +162,55 @@ const MapView = () => {
       }
       return { ...res, distance: null };
     });
-    
+
     if (searchTerm) {
       combined = combined.filter(res => (res.name || res.nombre || '').toLowerCase().includes(searchTerm.toLowerCase()));
     }
 
-    let filtered = combined;
-    if (activeCategory !== 'Todos') {
-      if (activeCategory === 'Explorar') {
-        filtered = osmRestaurants;
-      } else {
-        filtered = combined.filter(res => {
-          const catName = typeof res.category === 'string' ? res.category : res.categoria?.nombre;
-          return catName === activeCategory;
-        });
-      }
+    if (activeCategorias.length > 0) {
+      combined = combined.filter(res => activeCategorias.includes(res.categoria?.id));
+    }
+
+    if (minRating > 0) {
+      combined = combined.filter(res => Number(res.calificacion_promedio) >= minRating);
     }
 
     if (userPosition) {
-      filtered.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+      combined.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
     }
-    return filtered;
-  }, [localRestaurants, osmRestaurants, activeCategory, searchTerm, userPosition]);
+
+    return combined;
+  }, [localRestaurants, osmRestaurants, searchTerm, activeCategorias, minRating, distancia, userPosition]);
 
   const iconSize = useMemo(() => {
-    // Escalado suave: aumenta 8px por cada nivel de zoom por encima de 10
     const baseSize = (currentZoom - 10) * 8;
     return Math.max(16, Math.min(70, baseSize));
   }, [currentZoom]);
 
   const categoryIcons = useMemo(() => getCategoryIcons(iconSize), [iconSize]);
-  const userIcon = useMemo(() => getUserLocationIcon(iconSize * 0.45), [iconSize]); // Usuario con tamaño más delicado
+  const userIcon = useMemo(() => getUserLocationIcon(iconSize * 0.45), [iconSize]);
 
   return (
     <section className="flex flex-col gap-4 w-full h-[calc(100vh-100px)]">
-      <div className="flex items-center gap-3 w-full">
-        
-        <div className="relative flex-1">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-            <Search className="w-5 h-5 text-muted-foreground" />
-          </div>
-          <Input 
-            placeholder="Buscar restaurante..." 
-            className="pl-10 bg-card border-border h-11 w-full text-base shadow-sm"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        {loadingOsm && <Loader2 className="w-6 h-6 animate-spin text-primary shrink-0" />}
+      <FilterBar
+        categories={categorias}
+        onFilterChange={({ search, categorias: cats, minRating, distancia }) => {
+          setSearchTerm(search);
+          setActiveCategorias(cats);
+          setMinRating(minRating);
+          setDistancia(distancia);
+        }}
+        resultCount={allRestaurants.length}
+      />
 
-        {routePoints && (
-          <button
-            onClick={() => setRoutePoints(null)}
-            className="shrink-0 bg-red-100 border-2 border-red-200 text-red-600 hover:bg-red-600 hover:text-white px-5 h-11 rounded-md font-bold text-sm shadow-sm transition-all flex items-center"
-          >
-            Limpiar Ruta
-          </button>
-        )}
-      </div>
+      {routePoints && (
+        <button
+          onClick={() => setRoutePoints(null)}
+          className="shrink-0 bg-red-100 border-2 border-red-200 text-red-600 hover:bg-red-600 hover:text-white px-5 h-11 rounded-md font-bold text-sm shadow-sm transition-all flex items-center"
+        >
+          Limpiar Ruta
+        </button>
+      )}
 
       {geoError && (
         <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-2 rounded-lg flex items-center gap-2 text-sm">
@@ -248,7 +219,8 @@ const MapView = () => {
       )}
 
       <div className="w-full rounded-2xl overflow-hidden border border-border shadow-2xl relative z-10 bg-muted/20" style={{ height: "calc(100vh - 160px)" }}>
-        <style dangerouslySetInnerHTML={{ __html: `
+        <style dangerouslySetInnerHTML={{
+          __html: `
           .leaflet-tooltip-google {
             background-color: transparent !important;
             border: none !important;
@@ -268,34 +240,22 @@ const MapView = () => {
             box-shadow: 0 20px 40px -15px rgba(0,0,0,0.15) !important;
             overflow: hidden !important;
           }
-          .leaflet-popup-content {
-            margin: 0 !important;
-            width: 240px !important;
-          }
-          .leaflet-popup-tip-container {
-            margin-top: -1px !important;
-          }
+          .leaflet-popup-content { margin: 0 !important; width: 240px !important; }
+          .leaflet-popup-tip-container { margin-top: -1px !important; }
           .leaflet-popup-tip {
             background: rgba(255, 255, 255, 0.95) !important;
             box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
             border: 1px solid rgba(226, 232, 240, 0.8) !important;
           }
           .leaflet-container a.leaflet-popup-close-button {
-            top: 12px !important;
-            right: 12px !important;
+            top: 12px !important; right: 12px !important;
             color: #ffffff !important;
             background: rgba(15, 23, 42, 0.5) !important;
-            width: 24px !important;
-            height: 24px !important;
+            width: 24px !important; height: 24px !important;
             border-radius: 9999px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            font-size: 14px !important;
-            line-height: 24px !important;
-            font-weight: bold !important;
-            z-index: 1000 !important;
-            transition: all 0.2s ease !important;
+            display: flex !important; align-items: center !important; justify-content: center !important;
+            font-size: 14px !important; line-height: 24px !important; font-weight: bold !important;
+            z-index: 1000 !important; transition: all 0.2s ease !important;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
             border: 1px solid rgba(255,255,255,0.2) !important;
           }
@@ -304,7 +264,7 @@ const MapView = () => {
             transform: scale(1.05) !important;
           }
         `}} />
-        
+
         <MapContainer center={[4.711, -74.0721]} zoom={currentZoom} scrollWheelZoom={true} style={{ height: "calc(100vh - 160px)", width: "100%" }} className="z-0">
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap contributors' />
           <MapController onBoundsChange={setBboxString} onZoomChange={setCurrentZoom} userPosition={userPosition} shouldRecenter={shouldRecenter} setShouldRecenter={setShouldRecenter} />
@@ -327,51 +287,24 @@ const MapView = () => {
                 <Tooltip permanent direction="right" offset={[15, 0]} className="leaflet-tooltip-google">{res.name || res.nombre}</Tooltip>
                 <Popup>
                   <div className="w-[240px] font-sans overflow-hidden bg-white text-slate-900 rounded-2xl flex flex-col">
-                    {/* Header Image with overlay */}
                     <div className="relative w-full h-28 bg-slate-900 overflow-hidden shrink-0">
-                      <img 
-                        src={getRestaurantCoverImage(res)} 
-                        alt={res.name || res.nombre} 
-                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" 
-                      />
-                      {/* Gradient overlay */}
+                      <img src={getRestaurantCoverImage(res)} alt={res.name || res.nombre} className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-black/10 pointer-events-none" />
-                      
-                      {/* Category Badge on top of image */}
                       <span className="absolute bottom-2 left-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-primary text-primary-foreground border border-primary/20 shadow-sm">
                         {catName}
                       </span>
                     </div>
-
-                    {/* Content Section */}
                     <div className="p-3.5 space-y-2.5 flex-1">
                       <div>
-                        <h4 className="font-extrabold text-slate-900 text-sm leading-tight tracking-tight m-0 hover:text-primary transition-colors">
-                          {res.name || res.nombre}
-                        </h4>
-                        {res.direccion && (
-                          <p className="text-[9px] text-slate-500 font-medium m-0 mt-0.5 truncate">
-                            {res.direccion}
-                          </p>
-                        )}
+                        <h4 className="font-extrabold text-slate-900 text-sm leading-tight tracking-tight m-0 hover:text-primary transition-colors">{res.name || res.nombre}</h4>
+                        {res.direccion && <p className="text-[9px] text-slate-500 font-medium m-0 mt-0.5 truncate">{res.direccion}</p>}
                       </div>
-
-                      {/* Ratings and Distance */}
                       <div className="flex items-center gap-3.5 text-[11px] font-bold border-t border-b border-slate-100 py-1.5">
-                        {/* Rating */}
                         <div className="flex items-center gap-0.5 text-slate-700">
                           <Star size={12} className="text-amber-500 fill-amber-500" />
-                          <span>
-                            {res.calificacion_promedio && Number(res.calificacion_promedio) > 0 
-                              ? Number(res.calificacion_promedio).toFixed(1) 
-                              : "4.8"}
-                          </span>
-                          <span className="text-[9px] text-slate-400 font-normal">
-                            ({res.total_calificaciones || 14})
-                          </span>
+                          <span>{res.calificacion_promedio && Number(res.calificacion_promedio) > 0 ? Number(res.calificacion_promedio).toFixed(1) : "4.8"}</span>
+                          <span className="text-[9px] text-slate-400 font-normal">({res.total_calificaciones || 14})</span>
                         </div>
-
-                        {/* Distance */}
                         {res.distance !== null && (
                           <div className="flex items-center gap-1 text-indigo-600">
                             <span className="w-1 h-1 rounded-full bg-indigo-500 animate-pulse" />
@@ -379,22 +312,12 @@ const MapView = () => {
                           </div>
                         )}
                       </div>
-
-                      {/* Action Buttons */}
                       <div className="flex gap-1.5 pt-0.5">
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); calculateRoute(lat, lng); }} 
-                          className="flex-1 bg-indigo-600 text-white text-[10px] py-1.5 rounded-lg font-bold flex items-center justify-center gap-1 hover:bg-indigo-700 active:scale-95 transition-all shadow-sm hover:shadow-md"
-                        >
-                          <Navigation size={10} className="fill-current" /> 
-                          Ruta
+                        <button onClick={(e) => { e.stopPropagation(); calculateRoute(lat, lng); }} className="flex-1 bg-indigo-600 text-white text-[10px] py-1.5 rounded-lg font-bold flex items-center justify-center gap-1 hover:bg-indigo-700 active:scale-95 transition-all shadow-sm hover:shadow-md">
+                          <Navigation size={10} className="fill-current" /> Ruta
                         </button>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); navigate(`/restaurante/${res.id}`); }} 
-                          className="flex-1 bg-slate-50 border border-slate-200 text-slate-700 text-[10px] py-1.5 rounded-lg font-bold flex items-center justify-center gap-0.5 hover:bg-slate-100 active:scale-95 transition-all"
-                        >
-                          Detalles
-                          <ExternalLink size={10} />
+                        <button onClick={(e) => { e.stopPropagation(); navigate(`/restaurante/${res.id}`); }} className="flex-1 bg-slate-50 border border-slate-200 text-slate-700 text-[10px] py-1.5 rounded-lg font-bold flex items-center justify-center gap-0.5 hover:bg-slate-100 active:scale-95 transition-all">
+                          Detalles <ExternalLink size={10} />
                         </button>
                       </div>
                     </div>
@@ -407,7 +330,7 @@ const MapView = () => {
 
         <button
           onClick={() => {
-            if (userPosition) { setShouldRecenter(true); } 
+            if (userPosition) { setShouldRecenter(true); }
             else { navigator.geolocation.getCurrentPosition((pos) => { setUserPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setShouldRecenter(true); }); }
           }}
           className={`absolute bottom-6 right-6 z-[1000] p-3 rounded-full shadow-2xl transition-all active:scale-95 ${userPosition ? 'bg-primary text-primary-foreground hover:scale-110' : 'bg-muted text-muted-foreground animate-pulse'}`}
@@ -415,7 +338,6 @@ const MapView = () => {
         >
           <Navigation size={20} className={userPosition ? 'fill-current' : ''} />
         </button>
-
       </div>
     </section>
   );

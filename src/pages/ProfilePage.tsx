@@ -173,7 +173,7 @@ const ProfilePage = () => {
       <div className="min-h-screen bg-background flex flex-col">
         <header className="sticky top-0 z-50 bg-card/85 backdrop-blur-md border-b border-border/60">
           <div className="container py-4 flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/mapa")}>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <span className="text-xl font-bold text-primary">FoodMap</span>
@@ -203,7 +203,7 @@ const ProfilePage = () => {
               id="profile-back-btn"
               variant="ghost"
               size="icon"
-              onClick={() => navigate("/mapa")}
+              onClick={() => navigate("/")}
               className="text-muted-foreground hover:text-primary transition-colors rounded-full"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -546,11 +546,10 @@ const ProfilePage = () => {
                           {Array.from({ length: 5 }).map((_, idx) => (
                             <Star
                               key={idx}
-                              className={`w-3.5 h-3.5 ${
-                                idx < review.rating
+                              className={`w-3.5 h-3.5 ${idx < review.rating
                                   ? "fill-amber-500 text-amber-500"
                                   : "text-muted-foreground/30"
-                              }`}
+                                }`}
                             />
                           ))}
                         </div>
@@ -595,7 +594,7 @@ const ProfilePage = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => navigate("/mapa")}
+                    onClick={() => navigate("/")}
                     className="font-semibold"
                   >
                     <MapPin className="w-4 h-4 mr-2" />

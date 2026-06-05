@@ -9,7 +9,6 @@ import { loginUser } from "@/services/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -40,10 +39,6 @@ const LoginDialog = ({ open, onOpenChange, onOpenRegister }: LoginDialogProps) =
     }
   };
 
-  const handleSocial = (provider: string) => {
-    toast.info(`Inicio con ${provider} próximamente`);
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -54,22 +49,7 @@ const LoginDialog = ({ open, onOpenChange, onOpenRegister }: LoginDialogProps) =
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-3 mt-2">
-          <Button variant="outline" className="w-full" onClick={() => handleSocial("Google")}>
-            Continuar con Google
-          </Button>
-          <Button variant="outline" className="w-full" onClick={() => handleSocial("Facebook")}>
-            Continuar con Facebook
-          </Button>
-        </div>
-
-        <div className="flex items-center gap-3 my-2">
-          <Separator className="flex-1" />
-          <span>o</span>
-          <Separator className="flex-1" />
-        </div>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-2">
           <div className="space-y-2">
             <Label htmlFor="username">Usuario</Label>
             <Input
