@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-food.jpg";
 import { Button } from "@/components/ui/button";
@@ -12,68 +13,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import SchemaOrg from "@/components/SchemaOrg";
 import SEOHead from "@/components/SEOHead";
 
-const restaurants = [
-  {
-    name: "Uramba Cocina",
-    category: "Cocina tradicional del Pacífico",
-    rating: 5,
-    image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop",
-    horario: "Mar–Dom: 12:00 PM – 9:00 PM",
-    direccion: "Centro",
-    domicilio: true,
-    especialidad: "Ceviches, cazuela de mariscos, encocados",
-  },
-  {
-    name: "Restaurante Café Pacífico",
-    category: "Mariscos & Cocina local",
-    rating: 4,
-    image: "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?w=400&h=300&fit=crop",
-    horario: "Lun–Sáb: 11:00 AM – 10:00 PM",
-    direccion: "Av. Simón Bolívar",
-    domicilio: true,
-    especialidad: "Pescado frito, arroz con coco, jugo de borojó",
-  },
-  {
-    name: "Restaurante Sabrosuras",
-    category: "Comida criolla & Asados",
-    rating: 5,
-    image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=400&h=300&fit=crop",
-    horario: "Lun–Dom: 10:00 AM – 9:00 PM",
-    direccion: "Cl 6-62, Brr. El Dorado",
-    domicilio: true,
-    especialidad: "Sancocho de pescado, arroz atollado, chuleta",
-  },
-  {
-    name: "La Fonda Paisa",
-    category: "Asadero & Cocina criolla",
-    rating: 4,
-    image: "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400&h=300&fit=crop",
-    horario: "Lun–Sáb: 7:00 AM – 8:00 PM",
-    direccion: "Centro",
-    domicilio: false,
-    especialidad: "Bandeja paisa, mondongo, caldo de costilla",
-  },
-  {
-    name: "Mariscos del Pacífico",
-    category: "Mariscos & Ceviches",
-    rating: 5,
-    image: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400&h=300&fit=crop",
-    horario: "Mar–Dom: 11:00 AM – 9:00 PM",
-    direccion: "Zona portuaria",
-    domicilio: true,
-    especialidad: "Ceviche de camarón, langostinos al ajillo, coctel de mariscos",
-  },
-  {
-    name: "El Rincón Bonaverense",
-    category: "Comida típica del Pacífico",
-    rating: 4,
-    image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop",
-    horario: "Lun–Dom: 8:00 AM – 8:00 PM",
-    direccion: "Barrio El Carmen",
-    domicilio: true,
-    especialidad: "Tapao de pescado, pusandao, aborrajados",
-  },
-];
+const API_BASE = "http://127.0.0.1:8000";
 
 const steps = [
   { icon: MapPin, title: "Encuentra comida", desc: "Explora restaurantes cercanos usando el mapa interactivo." },
@@ -95,10 +35,22 @@ const Index = () => {
     enabled: loggedIn,
   });
 
-  const API_BASE = "http://127.0.0.1:8000";
+  const API_BASE_LOCAL = "http://127.0.0.1:8000";
   const resolvedAvatar = profile?.avatar
-    ? (profile.avatar.startsWith("http") ? profile.avatar : `${API_BASE}${profile.avatar}`)
+    ? (profile.avatar.startsWith("http") ? profile.avatar : `${API_BASE_LOCAL}${profile.avatar}`)
     : null;
+
+  // Restaurantes desde la API
+  const [restaurants, setRestaurants] = useState<any[]>([]);
+  const [loadingRestaurants, setLoadingRestaurants] = useState(true);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/restaurantes/`)
+      .then((res) => res.json())
+      .then((data) => setRestaurants(Array.isArray(data) ? data : (data.results ?? [])))
+      .catch(() => setRestaurants([]))
+      .finally(() => setLoadingRestaurants(false));
+  }, []);
 
   const initials = (profile?.nombre || profile?.username || username || "U")
     .split(" ")
@@ -225,8 +177,19 @@ const Index = () => {
             Explora restaurantes, revisa su menú y haz pedidos fácilmente desde un mapa interactivo.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <Button variant="hero" size="lg" onClick={() => navigate("/mapa")}>
-              Buscar comida cerca
+            <Button
+              variant="hero"
+              size="lg"
+              onClick={() => {
+                if (loggedIn) {
+                  navigate("/mapa");
+                } else {
+                  toast.info("Por favor inicia sesión para acceder al mapa");
+                  setLoginOpen(true);
+                }
+              }}
+            >
+              Ver mapa
             </Button>
             <Button variant="heroOutline" size="lg" onClick={() => {
               document.getElementById("about")?.scrollIntoView({ behavior: "smooth" });
@@ -269,40 +232,71 @@ const Index = () => {
         <div className="container">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">Restaurantes destacados</h2>
           <p className="text-center text-muted-foreground mb-14 text-lg">Los mejores lugares para comer cerca de ti</p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {restaurants.map((r, i) => (
-              <div key={i} className="bg-card rounded-lg overflow-hidden shadow-card hover:shadow-lg transition-shadow">
-                <img src={r.image} alt={r.name} className="w-full h-44 object-cover" loading="lazy" />
-                <div className="p-5">
-                  <div className="flex items-center justify-between mb-1">
-                    <h3 className="text-lg font-semibold">{r.name}</h3>
-                    <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                      {r.domicilio ? "Domicilio ✓" : "Solo local"}
-                    </span>
-                  </div>
-                  <p className="text-muted-foreground text-sm mb-2">{r.category}</p>
-                  <div className="mb-3 flex items-center gap-1">
-                    {Array.from({ length: r.rating }).map((_, j) => (
-                      <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-sm text-foreground/80 mb-3 italic font-medium">"{r.especialidad}"</p>
-                  <div className="space-y-1.5 text-sm text-muted-foreground mb-4">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-3.5 h-3.5 text-primary" />
-                      <span>{r.horario}</span>
-                    </div>
 
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-3.5 h-3.5 text-primary" />
-                      <span>{r.direccion}</span>
+          {loadingRestaurants ? (
+            <div className="text-center text-muted-foreground py-16">Cargando restaurantes...</div>
+          ) : restaurants.length === 0 ? (
+            <div className="text-center text-muted-foreground py-16">No hay restaurantes disponibles aún.</div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {restaurants.map((r) => {
+                const rating = Math.round(r.calificacion_promedio || 0);
+                const horario = r.horario
+                  ? typeof r.horario === "string"
+                    ? r.horario
+                    : Object.entries(r.horario)
+                      .map(([dia, hora]) => `${dia}: ${hora}`)
+                      .join(" · ")
+                  : "Consultar horario";
+                const imagen = r.imagen
+                  ? (r.imagen.startsWith("http") ? r.imagen : `${API_BASE}${r.imagen}`)
+                  : "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop";
+
+                return (
+                  <div key={r.id} className="bg-card rounded-lg overflow-hidden shadow-card hover:shadow-lg transition-shadow">
+                    <img src={imagen} alt={r.nombre} className="w-full h-44 object-cover" loading="lazy" />
+                    <div className="p-5">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="text-lg font-semibold">{r.nombre}</h3>
+                        {r.categoria && (
+                          <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                            {r.categoria.icono} {r.categoria.nombre}
+                          </span>
+                        )}
+                      </div>
+                      {r.descripcion && (
+                        <p className="text-muted-foreground text-sm mb-2">{r.descripcion}</p>
+                      )}
+                      <div className="mb-3 flex items-center gap-1">
+                        {Array.from({ length: 5 }).map((_, j) => (
+                          <Star
+                            key={j}
+                            className={`w-4 h-4 ${j < rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
+                          />
+                        ))}
+                        {r.total_calificaciones > 0 && (
+                          <span className="text-xs text-muted-foreground ml-1">({r.total_calificaciones})</span>
+                        )}
+                      </div>
+                      <div className="space-y-1.5 text-sm text-muted-foreground mb-4">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                          <span className="truncate">{horario}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                          <span className="truncate">{r.direccion}</span>
+                        </div>
+                      </div>
+                      <Button className="w-full" onClick={() => navigate(`/restaurante/${r.id}`)}>
+                        Ver menú
+                      </Button>
                     </div>
                   </div>
-                  <Button className="w-full">Ver menú</Button>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 

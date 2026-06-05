@@ -5,10 +5,11 @@ import {
     DialogTitle,
     DialogDescription,
 } from "@/components/ui/dialog";
-import { registerUser } from "@/services/auth";
+import { registerUser, registerRestaurant } from "@/services/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { User, Store } from "lucide-react";
 
 import { useState } from "react";
 import { toast } from "sonner";
@@ -19,7 +20,10 @@ interface RegisterDialogProps {
     onSuccessLogin: () => void;
 }
 
+type Role = "user" | "restaurant";
+
 const RegisterDialog = ({ open, onOpenChange, onSuccessLogin }: RegisterDialogProps) => {
+    const [role, setRole] = useState<Role>("user");
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -30,7 +34,11 @@ const RegisterDialog = ({ open, onOpenChange, onSuccessLogin }: RegisterDialogPr
         setLoading(true);
 
         try {
-            await registerUser(username, email, password);
+            if (role === "restaurant") {
+                await registerRestaurant(username, email, password);
+            } else {
+                await registerUser(username, email, password);
+            }
             toast.success("¡Cuenta creada! Ahora inicia sesión.");
             onOpenChange(false);
             onSuccessLogin();
@@ -54,6 +62,49 @@ const RegisterDialog = ({ open, onOpenChange, onSuccessLogin }: RegisterDialogPr
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-2">
+
+                    {/* Selector de rol */}
+                    <div className="space-y-2">
+                        <Label>Selecciona tu tipo de cuenta:</Label>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setRole("user")}
+                                className={`
+                                    relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all
+                                    ${role === "user"
+                                        ? "border-primary bg-primary/10 text-primary"
+                                        : "border-border bg-muted/30 text-muted-foreground hover:border-primary/50"
+                                    }
+                                `}
+                            >
+                                {role === "user" && (
+                                    <span className="absolute top-2 right-2 text-primary text-xs">✓</span>
+                                )}
+                                <User className="w-7 h-7" />
+                                <span className="text-sm font-medium">Como Usuario</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setRole("restaurant")}
+                                className={`
+                                    relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all
+                                    ${role === "restaurant"
+                                        ? "border-primary bg-primary/10 text-primary"
+                                        : "border-border bg-muted/30 text-muted-foreground hover:border-primary/50"
+                                    }
+                                `}
+                            >
+                                {role === "restaurant" && (
+                                    <span className="absolute top-2 right-2 text-primary text-xs">✓</span>
+                                )}
+                                <Store className="w-7 h-7" />
+                                <span className="text-sm font-medium">Como Restaurante</span>
+                            </button>
+                        </div>
+                    </div>
+
                     <div className="space-y-2">
                         <Label htmlFor="reg-username">Usuario</Label>
                         <Input
