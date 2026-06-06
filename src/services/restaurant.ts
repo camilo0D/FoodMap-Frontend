@@ -37,13 +37,24 @@ export interface Restaurante {
 
 // Obtener el restaurante del dueño autenticado
 export const fetchMyRestaurant = async (): Promise<Restaurante | null> => {
-    const res = await fetch(`${API_URL}/restaurantes/`, {
+    const res = await fetch(`${API_URL}/restaurantes/me/`, {
         headers: getAuthHeaders(),
     });
-    if (!res.ok) throw new Error("Error al obtener restaurantes");
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error("Error al obtener restaurante");
     const data = await res.json();
-    const results = data.results || data;
-    return results.length > 0 ? results[0] : null;
+    return data;
+};
+
+// Crear restaurante
+export const createRestaurant = async (data: FormData): Promise<Restaurante> => {
+    const res = await fetch(`${API_URL}/restaurantes/me/`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: data,
+    });
+    if (!res.ok) throw new Error("Error al crear restaurante");
+    return res.json();
 };
 
 // Actualizar restaurante

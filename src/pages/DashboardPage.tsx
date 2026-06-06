@@ -8,12 +8,34 @@ import { getRoles, isAuthenticated } from "@/services/auth";
 import {
     fetchMyRestaurant,
     updateRestaurant,
+    createRestaurant,
     fetchPlatos,
     createPlato,
     deletePlato,
     fetchResenasRestaurante,
     Plato,
 } from "@/services/restaurant";
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
+// Fix for default marker icons
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+const LocationMarker = ({ position, setPosition }: any) => {
+  useMapEvents({
+    click(e) {
+      setPosition({ lat: e.latlng.lat, lng: e.latlng.lng });
+    },
+  });
+  return position === null ? null : <Marker position={position} />;
+};
+
 
 const API_BASE = "http://127.0.0.1:8000";
 
@@ -44,14 +66,14 @@ const DashboardPage = () => {
     // Fetch platos
     const { data: platos = [] } = useQuery({
         queryKey: ["my-platos", restaurante?.id],
-        queryFn: () => fetchPlatos(restaurante!.id),
+        queryFn: () => fetchPlatos(restaurante?.id || ""),
         enabled: !!restaurante?.id,
     });
 
     // Fetch reseñas
     const { data: resenasData } = useQuery({
         queryKey: ["my-resenas", restaurante?.id],
-        queryFn: () => fetchResenasRestaurante(restaurante!.id),
+        queryFn: () => fetchResenasRestaurante(restaurante?.id || ""),
         enabled: !!restaurante?.id,
     });
 
@@ -77,7 +99,7 @@ const DashboardPage = () => {
 
     // Mutation actualizar restaurante
     const updateMutation = useMutation({
-        mutationFn: (data: FormData) => updateRestaurant(restaurante!.id, data),
+        mutationFn: (data: FormData) => updateRestaurant(restaurante?.id || "", data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["my-restaurant"] });
             toast.success("Restaurante actualizado correctamente");
@@ -85,9 +107,19 @@ const DashboardPage = () => {
         onError: () => toast.error("Error al actualizar el restaurante"),
     });
 
+    // Mutation crear restaurante
+    const createRestaurantMutation = useMutation({
+        mutationFn: (data: FormData) => createRestaurant(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["my-restaurant"] });
+            toast.success("Restaurante creado correctamente");
+        },
+        onError: () => toast.error("Error al crear el restaurante"),
+    });
+
     // Mutation crear plato
     const createPlatoMutation = useMutation({
-        mutationFn: (data: FormData) => createPlato(restaurante!.id, data),
+        mutationFn: (data: FormData) => createPlato(restaurante?.id || "", data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["my-platos"] });
             toast.success("Plato creado correctamente");
@@ -98,7 +130,7 @@ const DashboardPage = () => {
 
     // Mutation eliminar plato
     const deletePlatoMutation = useMutation({
-        mutationFn: (platoId: string) => deletePlato(restaurante!.id, platoId),
+        mutationFn: (platoId: string) => deletePlato(restaurante?.id || "", platoId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["my-platos"] });
             toast.success("Plato eliminado correctamente");
@@ -115,6 +147,16 @@ const DashboardPage = () => {
     });
     const [imagenPreview, setImagenPreview] = useState<string | null>(null);
     const [imagenFile, setImagenFile] = useState<File | null>(null);
+    const [mapPosition, setMapPosition] = useState<{lat: number, lng: number} | null>(null);
+
+    useEffect(() => {
+        if (restaurante?.latitud && restaurante?.longitud) {
+            setMapPosition(prev => prev || { lat: Number(restaurante.latitud), lng: Number(restaurante.longitud) });
+        } else if (!mapPosition) {
+            setMapPosition({ lat: 4.711, lng: -74.0721 }); // Default to a central location
+        }
+    }, [restaurante]);
+
 
     // Estado formulario nuevo plato
     const [nuevoPlato, setNuevoPlato] = useState({
@@ -128,12 +170,25 @@ const DashboardPage = () => {
     const handlePerfilSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const formData = new FormData();
-        formData.append("nombre", perfilForm.nombre);
-        formData.append("descripcion", perfilForm.descripcion);
-        formData.append("telefono", perfilForm.telefono);
-        formData.append("direccion", perfilForm.direccion);
-        if (imagenFile) formData.append("imagen", imagenFile);
-        updateMutation.mutate(formData);
+        const nombre = perfilForm.nombre || restaurante?.nombre || "";
+        const descripcion = perfilForm.descripcion || restaurante?.descripcion || "";
+        const telefono = perfilForm.telefono || restaurante?.telefono || "";
+        const direccion = perfilForm.direccion || restaurante?.direccion || "";
+        
+        if (nombre) formData.append("nombre", nombre);
+        if (descripcion) formData.append("descripcion", descripcion);
+        if (telefono) formData.append("telefono", telefono);
+        if (direccion) formData.append("direccion", direccion);
+        if (mapPosition) {
+            formData.append("latitud", mapPosition.lat.toString());
+            formData.append("longitud", mapPosition.lng.toString());
+        }
+        
+        if (restaurante) {
+            updateMutation.mutate(formData);
+        } else {
+            createRestaurantMutation.mutate(formData);
+        }
     };
 
     const handleImagenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -171,17 +226,6 @@ const DashboardPage = () => {
         );
     }
 
-    if (!restaurante) {
-        return (
-            <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
-                <UtensilsCrossed className="w-16 h-16 text-muted-foreground" />
-                <h2 className="text-2xl font-bold">No tienes un restaurante registrado</h2>
-                <p className="text-muted-foreground">Contacta al administrador para registrar tu restaurante.</p>
-                <Button onClick={() => navigate("/")}>Volver al inicio</Button>
-            </div>
-        );
-    }
-
     return (
         <div className="min-h-screen bg-background">
             {/* Header */}
@@ -198,7 +242,7 @@ const DashboardPage = () => {
             <main className="container py-8 max-w-4xl">
                 {/* Info restaurante + completitud */}
                 <div className="bg-card rounded-2xl p-6 border border-border mb-6 flex items-center gap-6">
-                    {restaurante.imagen ? (
+                    {restaurante?.imagen ? (
                         <img src={restaurante.imagen.startsWith("http") ? restaurante.imagen : `${API_BASE}${restaurante.imagen}`}
                             alt={restaurante.nombre}
                             className="w-20 h-20 rounded-xl object-cover border border-border"
@@ -209,8 +253,8 @@ const DashboardPage = () => {
                         </div>
                     )}
                     <div className="flex-1">
-                        <h1 className="text-2xl font-bold">{restaurante.nombre}</h1>
-                        <p className="text-muted-foreground text-sm">{restaurante.direccion}</p>
+                        <h1 className="text-2xl font-bold">{restaurante?.nombre || "Nuevo Restaurante"}</h1>
+                        <p className="text-muted-foreground text-sm">{restaurante?.direccion || "Completa tus datos abajo"}</p>
                         {/* FT-123: Indicador completitud */}
                         <div className="mt-3">
                             <div className="flex items-center justify-between mb-1">
@@ -227,8 +271,8 @@ const DashboardPage = () => {
                     </div>
                     <div className="flex flex-col items-center gap-1">
                         <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
-                        <span className="font-bold">{restaurante.calificacion_promedio}</span>
-                        <span className="text-xs text-muted-foreground">{restaurante.total_calificaciones} reseñas</span>
+                        <span className="font-bold">{restaurante?.calificacion_promedio || "0.0"}</span>
+                        <span className="text-xs text-muted-foreground">{restaurante?.total_calificaciones || 0} reseñas</span>
                     </div>
                 </div>
 
@@ -241,11 +285,12 @@ const DashboardPage = () => {
                     ].map(({ key, label, icon: Icon }) => (
                         <button
                             key={key}
+                            disabled={!restaurante && key !== "perfil"}
                             onClick={() => setActiveTab(key as any)}
                             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === key
                                 ? "border-primary text-primary"
                                 : "border-transparent text-muted-foreground hover:text-foreground"
-                                }`}
+                                } ${!restaurante && key !== "perfil" ? "opacity-50 cursor-not-allowed" : ""}`}
                         >
                             <Icon className="w-4 h-4" />
                             {label}
@@ -261,9 +306,9 @@ const DashboardPage = () => {
                         {/* Preview imagen */}
                         <div className="flex items-center gap-4">
                             <div className="w-24 h-24 rounded-xl overflow-hidden border border-border bg-muted">
-                                {imagenPreview || restaurante.imagen ? (
+                                {imagenPreview || restaurante?.imagen ? (
                                     <img
-                                        src={imagenPreview || (restaurante.imagen.startsWith("http") ? restaurante.imagen : `${API_BASE}${restaurante.imagen}`)}
+                                        src={imagenPreview || (restaurante?.imagen.startsWith("http") ? restaurante.imagen : `${API_BASE}${restaurante?.imagen}`)}
                                         className="w-full h-full object-cover"
                                         alt="Preview"
                                     />
@@ -284,7 +329,7 @@ const DashboardPage = () => {
                                 <label className="text-sm font-medium block mb-1">Nombre</label>
                                 <input
                                     type="text"
-                                    value={perfilForm.nombre || restaurante.nombre}
+                                    value={perfilForm.nombre || restaurante?.nombre || ""}
                                     onChange={(e) => setPerfilForm({ ...perfilForm, nombre: e.target.value })}
                                     className="w-full p-2 border border-border rounded-lg bg-background text-sm"
                                 />
@@ -293,7 +338,7 @@ const DashboardPage = () => {
                                 <label className="text-sm font-medium block mb-1">Teléfono</label>
                                 <input
                                     type="text"
-                                    value={perfilForm.telefono || restaurante.telefono}
+                                    value={perfilForm.telefono || restaurante?.telefono || ""}
                                     onChange={(e) => setPerfilForm({ ...perfilForm, telefono: e.target.value })}
                                     className="w-full p-2 border border-border rounded-lg bg-background text-sm"
                                 />
@@ -303,7 +348,7 @@ const DashboardPage = () => {
                         <div>
                             <label className="text-sm font-medium block mb-1">Descripción</label>
                             <textarea
-                                value={perfilForm.descripcion || restaurante.descripcion}
+                                value={perfilForm.descripcion || restaurante?.descripcion || ""}
                                 onChange={(e) => setPerfilForm({ ...perfilForm, descripcion: e.target.value })}
                                 className="w-full p-2 border border-border rounded-lg bg-background text-sm min-h-[80px]"
                             />
@@ -313,14 +358,36 @@ const DashboardPage = () => {
                             <label className="text-sm font-medium block mb-1">Dirección</label>
                             <input
                                 type="text"
-                                value={perfilForm.direccion || restaurante.direccion}
+                                value={perfilForm.direccion || restaurante?.direccion || ""}
                                 onChange={(e) => setPerfilForm({ ...perfilForm, direccion: e.target.value })}
                                 className="w-full p-2 border border-border rounded-lg bg-background text-sm"
                             />
                         </div>
 
-                        <Button type="submit" disabled={updateMutation.isPending}>
-                            {updateMutation.isPending ? "Guardando..." : "Guardar cambios"}
+                        <div>
+                            <div className="flex items-center justify-between mb-1">
+                                <label className="text-sm font-medium block">Ubicación Precisa</label>
+                                <span className="text-xs text-primary font-bold cursor-pointer hover:underline" onClick={() => {
+                                    if (navigator.geolocation) {
+                                        navigator.geolocation.getCurrentPosition((pos) => {
+                                            setMapPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                                        });
+                                    }
+                                }}>Establecer con GPS</span>
+                            </div>
+                            <div className="h-[250px] w-full rounded-xl overflow-hidden border border-border relative z-0">
+                                {mapPosition && (
+                                    <MapContainer center={mapPosition} zoom={14} style={{ height: "100%", width: "100%" }}>
+                                        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                                        <LocationMarker position={mapPosition} setPosition={setMapPosition} />
+                                    </MapContainer>
+                                )}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">Haz clic en el mapa para establecer el pin de la ubicación de tu restaurante.</p>
+                        </div>
+
+                        <Button type="submit" disabled={updateMutation.isPending || createRestaurantMutation.isPending}>
+                            {updateMutation.isPending || createRestaurantMutation.isPending ? "Guardando..." : "Guardar cambios"}
                         </Button>
                     </form>
                 )}
@@ -434,7 +501,7 @@ const DashboardPage = () => {
                             <h2 className="font-bold">Reseñas recibidas ({resenas.length})</h2>
                             <div className="flex items-center gap-2">
                                 <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                                <span className="font-bold">{restaurante.calificacion_promedio}</span>
+                                <span className="font-bold">{restaurante?.calificacion_promedio || "0.0"}</span>
                                 <span className="text-sm text-muted-foreground">promedio</span>
                             </div>
                         </div>

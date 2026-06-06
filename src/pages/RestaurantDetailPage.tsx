@@ -2,7 +2,7 @@ import SchemaOrg from "@/components/SchemaOrg";
 import SEOHead from "@/components/SEOHead";
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import useEmblaCarousel from "embla-carousel-react";
 import { useForm } from "react-hook-form";
 import {
@@ -15,6 +15,7 @@ import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { getUsername, isAuthenticated } from "@/services/auth";
 
 interface Review {
+  id?: number;
   user: string;
   date: string;
   rating: number;
@@ -80,7 +81,7 @@ const RestaurantDetailPage = () => {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "center" });
   const [prevBtnEnabled, setPrevBtnEnabled] = useState(false);
   const [nextBtnEnabled, setNextBtnEnabled] = useState(false);
-  const [customReviews, setCustomReviews] = useState<Review[]>([]);
+  const queryClient = useQueryClient();
   const loggedIn = isAuthenticated();
   const loggedInUser = getUsername() || "Usuario";
 
@@ -110,6 +111,17 @@ const RestaurantDetailPage = () => {
     },
     enabled: !!id,
   });
+
+  const { data: reviewsData } = useQuery({
+    queryKey: ["reviews", id],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/restaurantes/${id}/reviews/`);
+      if (!res.ok) return { results: [] };
+      return res.json();
+    },
+    enabled: !!id,
+  });
+
 
   const scrollPrev = () => emblaApi && emblaApi.scrollPrev();
   const scrollNext = () => emblaApi && emblaApi.scrollNext();
@@ -174,21 +186,46 @@ const RestaurantDetailPage = () => {
 
   const categoryName = typeof rest.categoria === "string" ? rest.categoria : rest.categoria?.nombre || "Restaurante";
   const images = getMockImages(categoryName, rest.imagen);
-  const allReviews = [...customReviews];
-  const totalReviews = allReviews.length;
-  const ratingSum = allReviews.reduce((sum, rev) => sum + rev.rating, 0);
-  const averageRating = totalReviews > 0 ? (ratingSum / totalReviews).toFixed(1) : Number(rest.calificacion_promedio).toFixed(1);
+  
+  const apiReviews = reviewsData?.results || [];
+  const allReviews: Review[] = apiReviews.map((r: any) => ({
+    id: r.id,
+    user: r.usuario_username,
+    date: new Date(r.created_at).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }),
+    rating: r.rating,
+    text: r.comment,
+  }));
+  
+  const totalReviews = rest.total_calificaciones || 0;
+  const averageRating = Number(rest.calificacion_promedio).toFixed(1);
 
-  const onReviewSubmit = (data: ReviewFormValues) => {
-    const newReview: Review = {
-      user: loggedInUser,
-      date: new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }),
-      rating: Number(data.rating),
-      text: data.comment
-    };
-    setCustomReviews([newReview, ...customReviews]);
-    toast.success("¡Reseña publicada con éxito!");
-    reset({ rating: 5, comment: "" });
+  const onReviewSubmit = async (data: ReviewFormValues) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_URL}/restaurantes/${id}/reviews/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          rating: Number(data.rating),
+          comment: data.comment
+        })
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.non_field_errors?.[0] || errorData.error || "Error al publicar la reseña");
+      }
+      
+      toast.success("¡Reseña publicada con éxito!");
+      reset({ rating: 5, comment: "" });
+      queryClient.invalidateQueries({ queryKey: ["reviews", id] });
+      queryClient.invalidateQueries({ queryKey: ["restaurant", id] });
+    } catch (error: any) {
+      toast.error(error.message || "Hubo un problema al publicar tu reseña");
+    }
   };
 
   return (
