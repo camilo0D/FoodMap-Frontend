@@ -153,3 +153,16 @@ export const deleteRestaurant = async (restId: string): Promise<{ message: strin
   if (!res.ok) throw new Error("Error deleting restaurant");
   return res.json();
 };
+
+export const assignRestaurantOwner = async (
+  restId: string,
+  duenoId: string
+): Promise<{ message: string; dueno: string; dueno_id: string }> => {
+  const res = await fetch(`${API_URL}/restaurantes/${restId}/asignar-dueno/`, {
+    method: "PATCH",
+    headers: getHeaders(),
+    body: JSON.stringify({ dueno_id: duenoId }),
+  });
+  if (!res.ok) throw new Error("Error asignando dueño");
+  return res.json();
+};

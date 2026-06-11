@@ -37,34 +37,39 @@ export interface Restaurante {
 
 // Obtener el restaurante del dueño autenticado
 export const fetchMyRestaurant = async (): Promise<Restaurante | null> => {
-    const res = await fetch(`${API_URL}/restaurantes/me/`, {
+    const res = await fetch(`${API_URL}/restaurantes/mio/`, {
         headers: getAuthHeaders(),
     });
-    if (res.status === 404) return null;
     if (!res.ok) throw new Error("Error al obtener restaurante");
     const data = await res.json();
-    return data;
+    return data && data.id ? data : null;
 };
 
-// Crear restaurante
-export const createRestaurant = async (data: FormData): Promise<Restaurante> => {
-    const res = await fetch(`${API_URL}/restaurantes/me/`, {
+// Subir imagen y obtener URL
+export const uploadRestaurantImage = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("imagen", file);
+    const res = await fetch(`${API_URL}/restaurantes/upload/image/`, {
         method: "POST",
         headers: getAuthHeaders(),
-        body: data,
+        body: formData,
     });
-    if (!res.ok) throw new Error("Error al crear restaurante");
-    return res.json();
+    if (!res.ok) throw new Error("Error al subir la imagen");
+    const data = await res.json();
+    return data.url;
 };
 
 // Actualizar restaurante
 export const updateRestaurant = async (id: string, data: FormData): Promise<Restaurante> => {
     const res = await fetch(`${API_URL}/restaurantes/${id}/`, {
-        method: "PATCH",
+        method: "PUT",
         headers: getAuthHeaders(),
         body: data,
     });
-    if (!res.ok) throw new Error("Error al actualizar restaurante");
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(JSON.stringify(err));
+    }
     return res.json();
 };
 
