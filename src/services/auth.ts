@@ -71,6 +71,51 @@ export const logoutUser = async () => {
   localStorage.removeItem("username");
 };
 
+
+// Refresca el access token usando el refresh token guardado
+export const refreshAccessToken = async (): Promise<boolean> => {
+  const refresh = localStorage.getItem("refresh");
+  if (!refresh) return false;
+  try {
+    const res = await fetch(`${API_URL}/token/refresh/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh }),
+    });
+    if (!res.ok) {
+      // Refresh expiró — limpiar sesión
+      localStorage.removeItem("token");
+      localStorage.removeItem("refresh");
+      localStorage.removeItem("roles");
+      localStorage.removeItem("username");
+      return false;
+    }
+    const data = await res.json();
+    localStorage.setItem("token", data.access);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+// Fetch autenticado con refresh automático si el token expiró
+export const authFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
+  const token = localStorage.getItem("token");
+  const headers = {
+    ...(options.headers || {}),
+    Authorization: `Bearer ${token}`,
+  };
+  let res = await fetch(url, { ...options, headers });
+  if (res.status === 401) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) {
+      headers.Authorization = `Bearer ${localStorage.getItem("token")}`;
+      res = await fetch(url, { ...options, headers });
+    }
+  }
+  return res;
+};
+
 export const getToken = () => localStorage.getItem("token");
 export const getRoles = (): string[] => JSON.parse(localStorage.getItem("roles") || "[]");
 export const getUsername = () => localStorage.getItem("username");

@@ -175,6 +175,10 @@ const MapView = () => {
       combined = combined.filter(res => Number(res.calificacion_promedio) >= minRating);
     }
 
+    if (userPosition && distancia) {
+      combined = combined.filter(res => res.distance === null || res.distance <= distancia);
+    }
+
     if (userPosition) {
       combined.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
     }
@@ -313,11 +317,11 @@ const MapView = () => {
                         )}
                       </div>
                       <div className="flex gap-1.5 pt-0.5">
-                        <button onClick={(e) => { e.stopPropagation(); calculateRoute(lat, lng); }} className="flex-1 bg-indigo-600 text-white text-[10px] py-1.5 rounded-lg font-bold flex items-center justify-center gap-1 hover:bg-indigo-700 active:scale-95 transition-all shadow-sm hover:shadow-md">
-                          <Navigation size={10} className="fill-current" /> Ruta
+                        <button onClick={(e) => { e.stopPropagation(); calculateRoute(lat, lng); }} className="flex-1 bg-indigo-600 text-white text-xs py-2 rounded-lg font-bold flex items-center justify-center gap-1.5 hover:bg-indigo-700 active:scale-95 transition-all shadow-sm hover:shadow-md">
+                          <Navigation size={12} className="fill-current" /> Ruta
                         </button>
-                        <button onClick={(e) => { e.stopPropagation(); navigate(`/restaurante/${res.id}`); }} className="flex-1 bg-slate-50 border border-slate-200 text-slate-700 text-[10px] py-1.5 rounded-lg font-bold flex items-center justify-center gap-0.5 hover:bg-slate-100 active:scale-95 transition-all">
-                          Detalles <ExternalLink size={10} />
+                        <button onClick={(e) => { e.stopPropagation(); navigate(`/restaurante/${res.id}`); }} className="flex-1 bg-slate-50 border border-slate-200 text-slate-700 text-xs py-2 rounded-lg font-bold flex items-center justify-center gap-1 hover:bg-slate-100 active:scale-95 transition-all">
+                          Detalles <ExternalLink size={11} />
                         </button>
                       </div>
                     </div>

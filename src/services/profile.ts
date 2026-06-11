@@ -1,15 +1,6 @@
-import { getToken } from "./auth";
+import { authFetch } from "./auth";
 
-const API_URL = "http://127.0.0.1:8000/api";
-
-const getAuthHeaders = () => ({
-  Authorization: `Bearer ${getToken()}`,
-});
-
-const getJsonHeaders = () => ({
-  "Content-Type": "application/json",
-  Authorization: `Bearer ${getToken()}`,
-});
+const API_URL = "http://127.0.0.1:8000/api/auth";
 
 // ─── Interfaces ──────────────────────────────────────────────
 
@@ -44,9 +35,7 @@ export interface UserReview {
  * Obtiene el perfil del usuario autenticado.
  */
 export const fetchUserProfile = async (): Promise<UserProfile> => {
-  const res = await fetch(`${API_URL}/users/me/`, {
-    headers: getAuthHeaders(),
-  });
+  const res = await authFetch(`${API_URL}/users/me/`);
   if (!res.ok) throw new Error("Error al obtener el perfil");
   return res.json();
 };
@@ -57,9 +46,8 @@ export const fetchUserProfile = async (): Promise<UserProfile> => {
  * No se establece Content-Type manualmente — el browser lo pone con el boundary.
  */
 export const updateUserProfile = async (data: FormData): Promise<UserProfile> => {
-  const res = await fetch(`${API_URL}/users/me/`, {
+  const res = await authFetch(`${API_URL}/users/me/`, {
     method: "PATCH",
-    headers: getAuthHeaders(),
     body: data,
   });
   if (!res.ok) {
@@ -75,9 +63,7 @@ export const updateUserProfile = async (data: FormData): Promise<UserProfile> =>
  * Obtiene las reseñas publicadas por el usuario autenticado.
  */
 export const fetchUserReviews = async (): Promise<UserReview[]> => {
-  const res = await fetch(`${API_URL}/users/me/reviews/`, {
-    headers: getAuthHeaders(),
-  });
+  const res = await authFetch(`${API_URL}/users/me/reviews/`);
   if (!res.ok) throw new Error("Error al obtener las reseñas");
   return res.json();
 };
@@ -86,9 +72,9 @@ export const fetchUserReviews = async (): Promise<UserReview[]> => {
  * Elimina (soft delete) una reseña del usuario.
  */
 export const deleteUserReview = async (reviewId: string): Promise<{ message: string }> => {
-  const res = await fetch(`${API_URL}/reviews/${reviewId}/`, {
+  const res = await authFetch(`${API_URL}/reviews/${reviewId}/`, {
     method: "DELETE",
-    headers: getJsonHeaders(),
+    headers: { "Content-Type": "application/json" },
   });
   if (!res.ok) throw new Error("Error al eliminar la reseña");
   return res.json();

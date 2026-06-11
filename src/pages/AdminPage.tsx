@@ -18,7 +18,8 @@ import {
   Check,
   Ban,
   Activity,
-  Layers
+  Layers,
+  UserCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,6 +68,7 @@ import {
   fetchAdminRestaurants,
   updateRestaurantStatusAndCategory,
   deleteRestaurant,
+  assignRestaurantOwner,
   AdminUser,
   AdminRestaurant,
   UserFilters,
@@ -92,6 +94,12 @@ const AdminPage = () => {
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [selectedRestaurant, setSelectedRestaurant] = useState<AdminRestaurant | null>(null);
   const [loadingUserDetails, setLoadingUserDetails] = useState(false);
+
+  // Modal asignar dueño
+  const [assignOwnerRestId, setAssignOwnerRestId] = useState<string | null>(null);
+  const [assignOwnerRestName, setAssignOwnerRestName] = useState("");
+  const [ownerSearch, setOwnerSearch] = useState("");
+  const [selectedOwnerId, setSelectedOwnerId] = useState<string | null>(null);
 
   // Effect: Refrescar datos del usuario cuando se abre el modal
   const selectedUserId = selectedUser?.id;
@@ -206,6 +214,22 @@ const AdminPage = () => {
     },
     onError: () => {
       toast.error("Error al eliminar el restaurante");
+    },
+  });
+
+  const assignOwnerMutation = useMutation({
+    mutationFn: ({ restId, duenoId }: { restId: string; duenoId: string }) =>
+      assignRestaurantOwner(restId, duenoId),
+    onSuccess: (data) => {
+      toast.success(data.message);
+      queryClient.invalidateQueries({ queryKey: ["adminRestaurants"] });
+      queryClient.invalidateQueries({ queryKey: ["adminUsers"] });
+      setAssignOwnerRestId(null);
+      setSelectedOwnerId(null);
+      setOwnerSearch("");
+    },
+    onError: () => {
+      toast.error("Error al asignar el dueño");
     },
   });
 
@@ -886,6 +910,20 @@ const AdminPage = () => {
 
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem
+                                      onClick={() => {
+                                        setAssignOwnerRestId(rest.id);
+                                        setAssignOwnerRestName(rest.nombre);
+                                        setSelectedOwnerId(null);
+                                        setOwnerSearch("");
+                                      }}
+                                      className="gap-2 text-xs text-blue-500 hover:text-blue-500"
+                                    >
+                                      <UserCheck className="w-3.5 h-3.5" />
+                                      Asignar dueño
+                                    </DropdownMenuItem>
+
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
                                       onClick={() => openConfirm("delete-restaurant", rest.id, rest.nombre)}
                                       className="gap-2 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
                                     >
@@ -1040,6 +1078,87 @@ const AdminPage = () => {
               </div>
             </div>
           ) : null}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: Asignar dueño a restaurante */}
+      <Dialog open={!!assignOwnerRestId} onOpenChange={(open) => { if (!open) { setAssignOwnerRestId(null); setSelectedOwnerId(null); setOwnerSearch(""); } }}>
+        <DialogContent className="sm:max-w-[480px] border border-border bg-card rounded-2xl">
+          <DialogHeader className="border-b border-border/40 pb-4">
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <UserCheck className="w-5 h-5 text-blue-500" />
+              Asignar dueño
+            </DialogTitle>
+            <DialogDescription className="text-xs mt-1">
+              Selecciona el usuario que será dueño de <span className="font-semibold text-foreground">"{assignOwnerRestName}"</span>.
+              Se le asignará automáticamente el rol de restaurante.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-4">
+            {/* Buscador de usuarios */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Buscar por usuario o correo..."
+                value={ownerSearch}
+                onChange={(e) => setOwnerSearch(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 text-sm border border-border rounded-xl bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+
+            {/* Lista de usuarios filtrados */}
+            <div className="max-h-64 overflow-y-auto space-y-1 rounded-xl border border-border/60 p-1">
+              {users && users
+                .filter((u) =>
+                  ownerSearch === "" ||
+                  u.username.toLowerCase().includes(ownerSearch.toLowerCase()) ||
+                  (u.email || "").toLowerCase().includes(ownerSearch.toLowerCase())
+                )
+                .map((u) => (
+                  <button
+                    key={u.id}
+                    type="button"
+                    onClick={() => setSelectedOwnerId(u.id)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${selectedOwnerId === u.id
+                        ? "bg-blue-500/10 border border-blue-500/30"
+                        : "hover:bg-muted/60 border border-transparent"
+                      }`}
+                  >
+                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs uppercase border border-primary/20 shrink-0">
+                      {(u.nombre || u.username).slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{u.nombre || u.username}</p>
+                      <p className="text-xs text-muted-foreground truncate">{u.email || `@${u.username}`}</p>
+                    </div>
+                    {selectedOwnerId === u.id && (
+                      <Check className="w-4 h-4 text-blue-500 shrink-0" />
+                    )}
+                  </button>
+                ))}
+              {users && users.filter((u) =>
+                ownerSearch === "" ||
+                u.username.toLowerCase().includes(ownerSearch.toLowerCase()) ||
+                (u.email || "").toLowerCase().includes(ownerSearch.toLowerCase())
+              ).length === 0 && (
+                  <p className="text-center text-xs text-muted-foreground py-6">No se encontraron usuarios</p>
+                )}
+            </div>
+
+            <Button
+              className="w-full"
+              disabled={!selectedOwnerId || assignOwnerMutation.isPending}
+              onClick={() => {
+                if (assignOwnerRestId && selectedOwnerId) {
+                  assignOwnerMutation.mutate({ restId: assignOwnerRestId, duenoId: selectedOwnerId });
+                }
+              }}
+            >
+              {assignOwnerMutation.isPending ? "Asignando..." : "Confirmar asignación"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
