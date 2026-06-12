@@ -27,7 +27,9 @@ interface ReviewFormValues {
   comment: string;
 }
 
-const API_URL = "http://127.0.0.1:8000/api";
+import { API_BASE_URL, SERVER_URL } from "@/config";
+const API_URL = API_BASE_URL;
+const API_BASE = SERVER_URL;
 
 const getMockImages = (categoryName: string, mainImage: string) => {
   const images = [];
@@ -186,7 +188,7 @@ const RestaurantDetailPage = () => {
 
   const categoryName = typeof rest.categoria === "string" ? rest.categoria : rest.categoria?.nombre || "Restaurante";
   const images = getMockImages(categoryName, rest.imagen);
-  
+
   const apiReviews = reviewsData?.results || [];
   const allReviews: Review[] = apiReviews.map((r: any) => ({
     id: r.id,
@@ -195,7 +197,7 @@ const RestaurantDetailPage = () => {
     rating: r.rating,
     text: r.comment,
   }));
-  
+
   const totalReviews = rest.total_calificaciones || 0;
   const averageRating = Number(rest.calificacion_promedio).toFixed(1);
 
@@ -213,12 +215,12 @@ const RestaurantDetailPage = () => {
           comment: data.comment
         })
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.non_field_errors?.[0] || errorData.error || "Error al publicar la reseña");
       }
-      
+
       toast.success("¡Reseña publicada con éxito!");
       reset({ rating: 5, comment: "" });
       queryClient.invalidateQueries({ queryKey: ["reviews", id] });

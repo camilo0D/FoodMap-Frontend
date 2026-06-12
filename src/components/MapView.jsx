@@ -7,6 +7,7 @@ import { useLocalRestaurants } from '@/hooks/useRestaurants';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import FilterBar from "./FilterBar";
+import { API_BASE_URL as API_URL } from "@/config";
 
 const calculateHaversineDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
@@ -131,7 +132,7 @@ const MapView = () => {
 
   // Fetch categorías
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/restaurantes/categorias/")
+    fetch(`${API_URL}/restaurantes/categorias/`)
       .then(res => res.json())
       .then(data => setCategorias(data))
       .catch(() => { });

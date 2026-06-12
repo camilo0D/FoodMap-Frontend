@@ -8,6 +8,7 @@ import { useUserProfile } from "@/hooks/useProfile";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import SchemaOrg from "@/components/SchemaOrg";
 import SEOHead from "@/components/SEOHead";
+import { SERVER_URL as API_BASE } from "@/config";
 
 const MapPage = () => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const MapPage = () => {
   const isAdmin = roles.includes("admin");
   const { data: profile } = useUserProfile();
 
-  const API_BASE = "http://127.0.0.1:8000";
+
   const resolvedAvatar = profile?.avatar
     ? (profile.avatar.startsWith("http") ? profile.avatar : `${API_BASE}${profile.avatar}`)
     : null;
