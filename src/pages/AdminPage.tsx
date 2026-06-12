@@ -75,7 +75,8 @@ import {
   RestaurantFilters,
 } from "@/services/admin";
 
-const API_BASE = "http://127.0.0.1:8000";
+import { SERVER_URL } from "@/config";
+const API_BASE = SERVER_URL;
 
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -1005,7 +1006,7 @@ const AdminPage = () => {
                     src={
                       selectedUser.avatar.startsWith("http")
                         ? selectedUser.avatar
-                        : `http://127.0.0.1:8000${selectedUser.avatar}`
+                        : `${API_BASE}${selectedUser.avatar}`
                     }
                     alt={selectedUser.nombre || selectedUser.username}
                     className="w-14 h-14 rounded-full border-2 border-primary/20 object-cover shrink-0"

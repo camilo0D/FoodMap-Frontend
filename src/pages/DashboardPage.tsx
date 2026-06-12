@@ -16,7 +16,8 @@ import {
     Plato,
 } from "@/services/restaurant";
 
-const API_BASE = "http://127.0.0.1:8000";
+import { SERVER_URL } from "@/config";
+const API_BASE = SERVER_URL;
 
 
 const DashboardPage = () => {

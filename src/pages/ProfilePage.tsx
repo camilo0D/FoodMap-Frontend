@@ -34,7 +34,8 @@ interface ProfileFormValues {
   bio: string;
 }
 
-const API_BASE = "http://127.0.0.1:8000";
+import { SERVER_URL } from "@/config";
+const API_BASE = SERVER_URL;
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -547,8 +548,8 @@ const ProfilePage = () => {
                             <Star
                               key={idx}
                               className={`w-3.5 h-3.5 ${idx < review.rating
-                                  ? "fill-amber-500 text-amber-500"
-                                  : "text-muted-foreground/30"
+                                ? "fill-amber-500 text-amber-500"
+                                : "text-muted-foreground/30"
                                 }`}
                             />
                           ))}

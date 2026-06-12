@@ -12,8 +12,9 @@ import { useUserProfile } from "@/hooks/useProfile";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import SchemaOrg from "@/components/SchemaOrg";
 import SEOHead from "@/components/SEOHead";
+import { API_BASE_URL as API_BASE, SERVER_URL } from "@/config";
 
-const API_BASE = "http://127.0.0.1:8000";
+
 
 const steps = [
   { icon: MapPin, title: "Encuentra comida", desc: "Explora restaurantes cercanos usando el mapa interactivo." },
@@ -35,9 +36,9 @@ const Index = () => {
     enabled: loggedIn,
   });
 
-  const API_BASE_LOCAL = "http://127.0.0.1:8000";
+
   const resolvedAvatar = profile?.avatar
-    ? (profile.avatar.startsWith("http") ? profile.avatar : `${API_BASE_LOCAL}${profile.avatar}`)
+    ? (profile.avatar.startsWith("http") ? profile.avatar : `${SERVER_URL}${profile.avatar}`)
     : null;
 
   // Restaurantes desde la API
