@@ -46,7 +46,7 @@ const Index = () => {
   const [loadingRestaurants, setLoadingRestaurants] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/restaurantes/`)
+    fetch(`${API_BASE}/restaurantes/`)
       .then((res) => res.json())
       .then((data) => setRestaurants(Array.isArray(data) ? data : (data.results ?? [])))
       .catch(() => setRestaurants([]))
