@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, Star, UtensilsCrossed, Clock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getRoles, isAuthenticated } from "@/services/auth";
+import { getRoles, isAuthenticated, getHomeRouteByRole } from "@/services/auth";
 import {
     fetchMyRestaurant,
     updateRestaurant,
@@ -208,7 +208,7 @@ const DashboardPage = () => {
                 <UtensilsCrossed className="w-16 h-16 text-muted-foreground" />
                 <h2 className="text-2xl font-bold">No tienes un restaurante registrado</h2>
                 <p className="text-muted-foreground">Contacta al administrador para registrar tu restaurante.</p>
-                <Button onClick={() => navigate("/")}>Volver al inicio</Button>
+                <Button onClick={() => navigate(getHomeRouteByRole())}>Volver al inicio</Button>
             </div>
         );
     }
@@ -218,7 +218,7 @@ const DashboardPage = () => {
             {/* Header */}
             <header className="sticky top-0 z-50 bg-card shadow-nav border-b border-border">
                 <div className="container flex items-center gap-4 py-4">
-                    <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+                    <Button variant="ghost" size="icon" onClick={() => navigate(getHomeRouteByRole())}>
                         <ArrowLeft className="w-5 h-5" />
                     </Button>
                     <span className="text-xl font-bold text-primary">FoodMap</span>

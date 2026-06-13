@@ -74,6 +74,7 @@ import {
   UserFilters,
   RestaurantFilters,
 } from "@/services/admin";
+import { getHomeRouteByRole } from "@/services/auth";
 
 import { SERVER_URL } from "@/config";
 const API_BASE = SERVER_URL;
@@ -335,9 +336,9 @@ const AdminPage = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate("/")}
+              onClick={() => navigate(getHomeRouteByRole())}
               className="text-muted-foreground hover:text-primary transition-colors rounded-full"
-              title="Volver al Inicio"
+              title="Volver a mi panel"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
@@ -1123,8 +1124,8 @@ const AdminPage = () => {
                     type="button"
                     onClick={() => setSelectedOwnerId(u.id)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${selectedOwnerId === u.id
-                        ? "bg-blue-500/10 border border-blue-500/30"
-                        : "hover:bg-muted/60 border border-transparent"
+                      ? "bg-blue-500/10 border border-blue-500/30"
+                      : "hover:bg-muted/60 border border-transparent"
                       }`}
                   >
                     <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs uppercase border border-primary/20 shrink-0">
