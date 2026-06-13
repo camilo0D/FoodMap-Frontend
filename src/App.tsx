@@ -12,6 +12,9 @@ import ProfilePage from "./pages/ProfilePage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import RestaurantDetailPage from "./pages/RestaurantDetailPage.tsx";
 import DashboardPage from "./pages/DashboardPage.tsx";
+import UserHomePage from "./pages/UserHomePage.tsx";
+import RestaurantHomePage from "./pages/RestaurantHomePage.tsx";
+import AdminHomePage from "./pages/AdminHomePage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +26,34 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+
+          {/* Homes por rol — destino post-login */}
+          <Route
+            path="/home/usuario"
+            element={
+              <PrivateRoute>
+                <UserHomePage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/home/restaurante"
+            element={
+              <PrivateRoute>
+                <RestaurantHomePage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/home/admin"
+            element={
+              <AdminRoute>
+                <AdminHomePage />
+              </AdminRoute>
+            }
+          />
+
+          {/* Rutas existentes */}
           <Route
             path="/mapa"
             element={

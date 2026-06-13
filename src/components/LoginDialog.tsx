@@ -5,7 +5,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { loginUser } from "@/services/auth";
+import { loginUser, getHomeRouteByRole } from "@/services/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,10 +27,11 @@ const LoginDialog = ({ open, onOpenChange, onOpenRegister }: LoginDialogProps) =
     e.preventDefault();
     setLoading(true);
     try {
-      await loginUser(username, password);
+      const data = await loginUser(username, password);
       toast.success("Inicio de sesión correcto");
       onOpenChange(false);
-      window.location.href = "/";
+      const roles: string[] = data?.user?.roles ?? [];
+      window.location.href = getHomeRouteByRole(roles);
     } catch (error) {
       console.error(error);
       toast.error("Usuario o contraseña incorrectos");

@@ -121,3 +121,10 @@ export const getToken = () => localStorage.getItem("token");
 export const getRoles = (): string[] => JSON.parse(localStorage.getItem("roles") || "[]");
 export const getUsername = () => localStorage.getItem("username");
 export const isAuthenticated = () => !!localStorage.getItem("token");
+
+// Devuelve la ruta del "home" interactivo correspondiente al rol del usuario
+export const getHomeRouteByRole = (roles: string[] = getRoles()): string => {
+  if (roles.includes("admin")) return "/home/admin";
+  if (roles.includes("restaurante")) return "/home/restaurante";
+  return "/home/usuario";
+};

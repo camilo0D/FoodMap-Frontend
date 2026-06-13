@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, LogOut, ShieldAlert } from "lucide-react";
+import { ArrowLeft, LogOut, ShieldAlert, LayoutGrid } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { logoutUser, getUsername, getRoles } from "@/services/auth";
+import { logoutUser, getUsername, getRoles, getHomeRouteByRole } from "@/services/auth";
 import { toast } from "sonner";
 import MapView from "@/components/MapView";
 import { useUserProfile } from "@/hooks/useProfile";
@@ -15,6 +15,7 @@ const MapPage = () => {
   const username = getUsername();
   const roles = getRoles();
   const isAdmin = roles.includes("admin");
+  const homeRoute = getHomeRouteByRole(roles);
   const { data: profile } = useUserProfile();
 
 
@@ -54,8 +55,10 @@ const MapPage = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate("/")}
+            onClick={() => navigate(homeRoute)}
             className="text-muted-foreground hover:text-primary"
+            title="Volver a mi panel"
+            aria-label="Volver a mi panel"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
@@ -65,6 +68,15 @@ const MapPage = () => {
           </span>
 
           <div className="ml-auto flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(homeRoute)}
+              className="flex items-center gap-1.5 text-primary border-primary/20 hover:bg-primary/10 transition-colors font-medium"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Mi panel</span>
+            </Button>
             {isAdmin && (
               <Button
                 variant="outline"
@@ -73,7 +85,7 @@ const MapPage = () => {
                 className="flex items-center gap-1.5 text-primary border-primary/20 hover:bg-primary/10 transition-colors font-bold"
               >
                 <ShieldAlert className="w-3.5 h-3.5" />
-                Panel Admin
+                <span className="hidden sm:inline">Panel Admin</span>
               </Button>
             )}
             <Button

@@ -7,7 +7,7 @@ import { MapPin, UtensilsCrossed, ShoppingCart, Eye, Target, Heart, Clock, Star,
 import LoginDialog from "@/components/LoginDialog";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import RegisterDialog from "@/components/RegisterDialog";
-import { isAuthenticated, getUsername, getRoles, logoutUser } from "@/services/auth";
+import { isAuthenticated, getUsername, getRoles, logoutUser, getHomeRouteByRole } from "@/services/auth";
 import { useUserProfile } from "@/hooks/useProfile";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import SchemaOrg from "@/components/SchemaOrg";
@@ -100,6 +100,14 @@ const Index = () => {
             <a href="#" className="text-foreground/80 hover:text-primary font-medium transition-colors">Inicio</a>
             <a href="#restaurants" className="text-foreground/80 hover:text-primary font-medium transition-colors">Restaurantes</a>
             <a href="#about" className="text-foreground/80 hover:text-primary font-medium transition-colors">Cómo funciona</a>
+            {loggedIn && (
+              <button
+                onClick={() => navigate(getHomeRouteByRole(roles))}
+                className="text-primary font-bold transition-colors hover:opacity-80"
+              >
+                Mi panel
+              </button>
+            )}
             {loggedIn && (
               <button
                 onClick={() => navigate("/mapa")}
